@@ -1,0 +1,246 @@
+# BitCurrent Exchange - Git Ignore File
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+*.env
+
+# Secrets and keys
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+*.log
+.cursor/
+
+# Rust
+/matching-engine/target/
+/matching-engine/**/*.rs.bk
+/matching-engine/Cargo.lock
+*.pdb
+
+# Go
+/services/**/vendor/
+/services/**/*.exe
+/services/**/*.test
+/services/**/*.out
+/services/**/bin/
+/services/**/pkg/
+
+# Node.js / Frontend
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+/frontend/build/
+/frontend/dist/
+/frontend/.cache/
+/frontend/.nuxt/
+/frontend/.output/
+/frontend/.env*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+
+# Docker
+*.dockerignore
+
+# Kubernetes
+**/secrets.yaml
+**/sealed-secrets.yaml
+
+# Terraform
+/infrastructure/**/.terraform/
+/infrastructure/**/.terraform.lock.hcl
+/infrastructure/**/terraform.tfstate
+/infrastructure/**/terraform.tfstate.*
+/infrastructure/**/terraform.tfvars
+/infrastructure/**/*.tfvars
+/infrastructure/**/.terraform.tfstate.lock.info
+/infrastructure/**/crash.log
+/infrastructure/**/override.tf
+/infrastructure/**/override.tf.json
+/infrastructure/**/*_override.tf
+/infrastructure/**/*_override.tf.json
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+/postgres-data/
+/redis-data/
+/kafka-data/
+/zookeeper-data/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+*.cover
+*.coverage
+.nyc_output/
+.jest/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Build artifacts
+dist/
+build/
+*.so
+*.dylib
+*.dll
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation build
+/docs/_build/
+/docs/.buildinfo
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Snapshots and backups
+snapshots/
+backups/
+*.snapshot
+
+# SSL Certificates
+*.crt
+*.cer
+*.ca-bundle
+*.p7b
+*.p7s
+*.spc
+
+# Monitoring data
+/monitoring-data/
+/grafana-data/
+/prometheus-data/
+
+# Demo data
+/demo-data/*.json
+/demo-data/*.csv
+
+# AWS
+.aws/
+.aws-sam/
+
+# Local development
+local/
+.local/
+
+# Python (for scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+
+
+
+# Secrets and credentials (NEVER COMMIT THESE!)
+.env*
+*.tfvars
+terraform.tfstate*
+.terraform/
+*.pem
+*.key
+id_rsa*
+secrets*.yaml
+*secret*
+*.log
+
+# AWS credentials
+.aws/
+
+# Build artifacts
+target/
+*/target/
+main
+*/main
+*.so
+*.dylib
+
+# Node modules
+node_modules/
+.next/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+

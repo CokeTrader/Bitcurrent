@@ -1,0 +1,145 @@
+# BitCurrent Exchange - Business Alerts
+# Prometheus alerting rules for business metrics
+
+groups:
+  - name: business
+    interval: 60s
+    rules:
+      # Balance Alerts
+      - alert: LowHotWalletBalance
+        expr: hot_wallet_balance_btc < 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: custody
+        annotations:
+          summary: "Low BTC hot wallet balance"
+          description: "Hot wallet balance: {{ $value }} BTC - rebalancing needed"
+
+      - alert: CriticalHotWalletBalance
+        expr: hot_wallet_balance_btc < 0.1
+        for: 1m
+        labels:
+          severity: critical
+          component: custody
+        annotations:
+          summary: "Critical BTC hot wallet balance"
+          description: "Hot wallet balance: {{ $value }} BTC - URGENT rebalancing required"
+
+      - alert: LowGBPBalance
+        expr: safeguarding_account_balance_gbp < 10000
+        for: 10m
+        labels:
+          severity: warning
+          component: banking
+        annotations:
+          summary: "Low GBP safeguarding account balance"
+          description: "Balance: £{{ $value }} - top-up may be needed"
+
+      # Deposit/Withdrawal Alerts
+      - alert: HighPendingWithdrawals
+        expr: pending_withdrawals_count > 50
+        for: 15m
+        labels:
+          severity: warning
+          component: settlement
+        annotations:
+          summary: "High number of pending withdrawals"
+          description: "{{ $value }} withdrawals awaiting processing"
+
+      - alert: StuckDeposit
+        expr: deposits_pending_duration_hours > 24
+        for: 30m
+        labels:
+          severity: warning
+          component: settlement
+        annotations:
+          summary: "Deposit stuck for over 24 hours"
+          description: "Deposit ID {{ $labels.deposit_id }} requires investigation"
+
+      # Compliance Alerts
+      - alert: HighRiskTransactionsPending
+        expr: compliance_high_risk_transactions_pending > 10
+        for: 15m
+        labels:
+          severity: warning
+          component: compliance
+        annotations:
+          summary: "High number of flagged transactions"
+          description: "{{ $value }} high-risk transactions awaiting review"
+
+      - alert: KYCReviewBacklog
+        expr: kyc_pending_reviews_count > 100
+        for: 1h
+        labels:
+          severity: info
+          component: compliance
+        annotations:
+          summary: "KYC review backlog"
+          description: "{{ $value }} KYC applications pending review"
+
+      # Revenue & Volume Alerts
+      - alert: TradingVolumeDropped
+        expr: (rate(trading_volume_24h[1h]) / rate(trading_volume_24h[1h] offset 24h)) < 0.50
+        for: 2h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Trading volume dropped significantly"
+          description: "Volume down {{ $value | humanizePercentage }} vs 24h ago"
+
+      - alert: NoNewUsers
+        expr: rate(users_registered_total[24h]) == 0
+        for: 24h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "No new user registrations in 24 hours"
+          description: "User growth stalled - check marketing/onboarding"
+
+      # Reconciliation Alerts
+      - alert: ReconciliationDiscrepancy
+        expr: abs(reconciliation_variance_percent) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          component: reconciliation
+        annotations:
+          summary: "Reconciliation discrepancy detected"
+          description: "{{ $labels.currency }} variance: {{ $value }}% - investigate immediately"
+
+      - alert: ReconciliationFailed
+        expr: time() - reconciliation_last_run_timestamp > 86400*1.5
+        for: 1h
+        labels:
+          severity: critical
+          component: reconciliation
+        annotations:
+          summary: "Daily reconciliation not run"
+          description: "Last run: {{ $value | humanizeDuration }} ago - investigate"
+
+      # Payment Processing Alerts
+      - alert: PaymentProcessingDelayed
+        expr: payment_processing_duration_seconds > 7200
+        for: 15m
+        labels:
+          severity: warning
+          component: banking
+        annotations:
+          summary: "Payment processing delayed"
+          description: "Payment {{ $labels.payment_id }} processing for {{ $value | humanizeDuration }}"
+
+      - alert: HighPaymentFailureRate
+        expr: rate(payment_failed_total[15m]) / rate(payment_attempts_total[15m]) > 0.10
+        for: 15m
+        labels:
+          severity: warning
+          component: banking
+        annotations:
+          summary: "High payment failure rate"
+          description: "{{ $value | humanizePercentage }} of payments failing"
+
+
+

@@ -1,0 +1,328 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags (e.g., v1.0.0)
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  AWS_REGION: eu-west-2
+
+jobs:
+  # Build and push Docker images
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: meta
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Matching Engine
+        uses: docker/build-push-action@v5
+        with:
+          context: ./matching-engine
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/matching-engine:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/matching-engine:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push API Gateway
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/api-gateway
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api-gateway:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api-gateway:latest
+
+      - name: Build and push Order Gateway
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/order-gateway
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/order-gateway:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/order-gateway:latest
+
+      - name: Build and push Ledger Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/ledger-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/ledger-service:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/ledger-service:latest
+
+      - name: Build and push Settlement Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/settlement-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/settlement-service:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/settlement-service:latest
+
+      - name: Build and push Market Data Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/market-data-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/market-data-service:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/market-data-service:latest
+
+      - name: Build and push Compliance Service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/compliance-service
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/compliance-service:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/compliance-service:latest
+
+      - name: Build and push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ steps.meta.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+
+  # Deploy to staging first
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: staging
+      url: https://staging.bitcurrent.co.uk
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name bitcurrent-staging
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install bitcurrent ./infrastructure/helm/bitcurrent \
+            -f ./infrastructure/helm/values-staging.yaml \
+            --set image.tag=${{ needs.build.outputs.version }} \
+            --namespace bitcurrent-staging \
+            --create-namespace \
+            --wait \
+            --timeout 10m
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/api-gateway -n bitcurrent-staging --timeout=5m
+          kubectl rollout status deployment/matching-engine -n bitcurrent-staging --timeout=5m
+
+      - name: Run smoke tests
+        run: |
+          sleep 30
+          curl -f https://staging-api.bitcurrent.co.uk/health || exit 1
+          echo "✅ Smoke tests passed"
+
+  # Run integration tests on staging
+  integration-tests:
+    name: Integration Tests on Staging
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./tests/integration
+        run: npm ci
+
+      - name: Run integration tests
+        working-directory: ./tests/integration
+        env:
+          API_URL: https://staging-api.bitcurrent.co.uk
+        run: npm test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: tests/integration/results/
+
+  # Manual approval gate
+  approve-production:
+    name: Approve Production Deployment
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    environment:
+      name: production-approval
+    steps:
+      - name: Approval checkpoint
+        run: echo "Production deployment approved"
+
+  # Deploy to production with blue-green strategy
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: approve-production
+    environment:
+      name: production
+      url: https://bitcurrent.co.uk
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name bitcurrent-prod
+
+      - name: Create database backup before deployment
+        run: |
+          aws rds create-db-snapshot \
+            --db-instance-identifier bitcurrent-prod-db \
+            --db-snapshot-identifier bitcurrent-prod-db-pre-deploy-$(date +%Y%m%d-%H%M%S)
+
+      - name: Deploy with Helm (Blue-Green)
+        run: |
+          helm upgrade bitcurrent ./infrastructure/helm/bitcurrent \
+            -f ./infrastructure/helm/values-prod.yaml \
+            --set image.tag=${{ needs.build.outputs.version }} \
+            --namespace bitcurrent-prod \
+            --wait \
+            --timeout 15m
+
+      - name: Run database migrations
+        run: |
+          kubectl run migration-job \
+            --image=migrate/migrate:latest \
+            --restart=Never \
+            --namespace=bitcurrent-prod \
+            --env="DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }}" \
+            -- -path=/migrations -database "${{ secrets.PRODUCTION_DATABASE_URL }}" up
+
+      - name: Verify deployment health
+        run: |
+          kubectl rollout status deployment/api-gateway -n bitcurrent-prod --timeout=10m
+          kubectl rollout status deployment/matching-engine -n bitcurrent-prod --timeout=10m
+          
+          # Wait for pods to be ready
+          kubectl wait --for=condition=ready pod -l app=api-gateway -n bitcurrent-prod --timeout=5m
+
+      - name: Run production smoke tests
+        run: |
+          sleep 60  # Wait for full initialization
+          
+          # Health checks
+          curl -f https://api.bitcurrent.co.uk/health || exit 1
+          curl -f https://bitcurrent.co.uk || exit 1
+          
+          # API test
+          curl -f https://api.bitcurrent.co.uk/api/v1/markets || exit 1
+          
+          echo "✅ Production smoke tests passed"
+
+      - name: Update frontend on S3
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          aws s3 sync out/ s3://bitcurrent-prod-frontend/ --delete
+          
+          # Invalidate CloudFront
+          DIST_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?contains(@, 'bitcurrent.co.uk')]].Id" --output text)
+          aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '🚀 Production deployment successful!',
+              attachments: [{
+                color: 'good',
+                text: 'Version ${{ needs.build.outputs.version }} deployed to production'
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "⚠️  Deployment failed, initiating rollback..."
+          helm rollback bitcurrent -n bitcurrent-prod
+          
+          # Notify team
+          echo "Deployment failed - rolled back to previous version"
+        continue-on-error: true
+
+      - name: Notify deployment failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: '❌ Production deployment failed!',
+              attachments: [{
+                color: 'danger',
+                text: 'Version ${{ needs.build.outputs.version }} deployment failed - rolled back'
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
+
+
+

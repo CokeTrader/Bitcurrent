@@ -1,0 +1,151 @@
+{
+  "dashboard": {
+    "title": "BitCurrent - Business Metrics",
+    "tags": ["business", "revenue", "users"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Users",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "users_total_count"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "blue"},
+                {"value": 1000, "color": "green"},
+                {"value": 10000, "color": "yellow"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Active Traders (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "count(count by (account_id) (rate(matching_engine_orders_processed_total[24h]) > 0))"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Trading Volume (24h GBP)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(increase(trade_volume_gbp[24h]))"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyGBP",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Revenue (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(increase(trading_fees_collected_gbp[24h]))"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyGBP",
+            "decimals": 2,
+            "color": {"mode": "fixed", "fixedColor": "green"}
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "New User Registrations",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "increase(users_registered_total[1h])",
+            "legendFormat": "New Users per Hour"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Trading Volume by Symbol",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "sum by (symbol) (rate(trade_volume_gbp[5m]) * 300)",
+            "legendFormat": "{{symbol}}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Deposit/Withdrawal Activity",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "sum(rate(deposits_completed_total[5m]) * 300)",
+            "legendFormat": "Deposits (5min)"
+          },
+          {
+            "expr": "sum(rate(withdrawals_completed_total[5m]) * 300)",
+            "legendFormat": "Withdrawals (5min)"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "KYC Status Distribution",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "targets": [
+          {
+            "expr": "sum by (kyc_level) (users_by_kyc_level)",
+            "legendFormat": "Level {{kyc_level}}"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Platform Balances",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "sum by (currency) (wallet_total_balance)",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {"id": "organize", "options": {"excludeByName": {"Time": true}}}
+        ]
+      }
+    ],
+    "refresh": "1m",
+    "time": {"from": "now-24h", "to": "now"}
+  }
+}
+
+
+

@@ -1,0 +1,110 @@
+# BitCurrent Exchange - Prometheus Configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'bitcurrent-local'
+    environment: 'development'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/trading.yml"
+  - "alerts/system.yml"
+  - "alerts/business.yml"
+  - "alerts/security.yml"
+  - "prometheus-rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Matching Engine (Rust)
+  - job_name: 'matching-engine'
+    static_configs:
+      - targets: ['matching-engine:9091']
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Order Gateway
+  - job_name: 'order-gateway'
+    static_configs:
+      - targets: ['order-gateway:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Ledger Service
+  - job_name: 'ledger-service'
+    static_configs:
+      - targets: ['ledger-service:8082']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Settlement Service
+  - job_name: 'settlement-service'
+    static_configs:
+      - targets: ['settlement-service:8083']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Market Data Service
+  - job_name: 'market-data-service'
+    static_configs:
+      - targets: ['market-data-service:8084']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Compliance Service
+  - job_name: 'compliance-service'
+    static_configs:
+      - targets: ['compliance-service:8085']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Kafka Exporter
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    scrape_interval: 30s
+
+  # Node Exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # cAdvisor (container metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+

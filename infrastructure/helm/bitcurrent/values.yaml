@@ -1,0 +1,218 @@
+# BitCurrent Exchange - Helm Chart Default Values
+
+global:
+  environment: production
+  domain: bitcurrent.co.uk
+
+# Image configuration
+image:
+  registry: ghcr.io/bitcurrent-exchange
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# Matching Engine
+matchingEngine:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: matching-engine
+  resources:
+    requests:
+      memory: "8Gi"
+      cpu: "4000m"
+    limits:
+      memory: "16Gi"
+      cpu: "8000m"
+  nodeSelector:
+    NodeType: matching-engine
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: matching
+      effect: NoSchedule
+
+# API Gateway
+apiGateway:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: api-gateway
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 8080
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Order Gateway
+orderGateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: order-gateway
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Ledger Service
+ledgerService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ledger-service
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Settlement Service
+settlementService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: settlement-service
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Market Data Service
+marketDataService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: market-data-service
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+# Compliance Service
+complianceService:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: compliance-service
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Frontend
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: frontend
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# PostgreSQL (external - using RDS)
+postgresql:
+  enabled: false
+  external:
+    enabled: true
+    host: "" # Set via values-prod.yaml
+    port: 5432
+    database: bitcurrent
+    username: bitcurrent_admin
+    # password: stored in secret
+
+# Redis (external - using ElastiCache)
+redis:
+  enabled: false
+  external:
+    enabled: true
+    host: "" # Set via values-prod.yaml
+    port: 6379
+
+# Kafka (external - using MSK)
+kafka:
+  enabled: false
+  external:
+    enabled: true
+    brokers: "" # Set via values-prod.yaml
+
+# Monitoring
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    retention: 15d
+  grafana:
+    enabled: true
+    adminPassword: "CHANGE_ME"
+  
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: api.bitcurrent.co.uk
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: api-gateway
+              port:
+                number: 80
+  tls:
+    - secretName: bitcurrent-tls
+      hosts:
+        - api.bitcurrent.co.uk
+
+# Security
+security:
+  podSecurityPolicy:
+    enabled: true
+  networkPolicies:
+    enabled: true
+
+# Backup
+backup:
+  enabled: true
+  schedule: "0 3 * * *" # 3 AM daily
+  retention: 30
+  s3Bucket: "" # Set via values-prod.yaml
+
+
+

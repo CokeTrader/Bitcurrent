@@ -1,0 +1,124 @@
+# BitCurrent Exchange - Production Environment Values
+
+global:
+  environment: production
+  domain: bitcurrent.co.uk
+
+# Full production resources
+matchingEngine:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "16Gi"
+      cpu: "8000m"
+    limits:
+      memory: "32Gi"
+      cpu: "16000m"
+  nodeSelector:
+    NodeType: matching-engine
+
+apiGateway:
+  replicaCount: 5
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "2000m"
+  autoscaling:
+    enabled: true
+    minReplicas: 5
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+
+orderGateway:
+  replicaCount: 3
+
+ledgerService:
+  replicaCount: 5
+
+settlementService:
+  replicaCount: 3
+
+marketDataService:
+  replicaCount: 3
+
+complianceService:
+  replicaCount: 2
+
+frontend:
+  replicaCount: 3
+
+# External resources (from Terraform outputs)
+postgresql:
+  external:
+    enabled: true
+    host: "bitcurrent-prod-db.xxxxx.eu-west-2.rds.amazonaws.com"
+    port: 5432
+
+redis:
+  external:
+    enabled: true
+    host: "bitcurrent-prod-redis.xxxxx.cache.amazonaws.com"
+    port: 6379
+
+kafka:
+  external:
+    enabled: true
+    brokers: "b-1.bitcurrent-prod-kafka.xxxxx.kafka.eu-west-2.amazonaws.com:9092,b-2.bitcurrent-prod-kafka.xxxxx.kafka.eu-west-2.amazonaws.com:9092,b-3.bitcurrent-prod-kafka.xxxxx.kafka.eu-west-2.amazonaws.com:9092"
+
+# Monitoring (full production)
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    retention: 30d
+    storageClass: gp3
+    storage: 100Gi
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: api.bitcurrent.co.uk
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: bitcurrent-prod-tls
+      hosts:
+        - api.bitcurrent.co.uk
+
+# Security (production hardening)
+security:
+  podSecurityPolicy:
+    enabled: true
+  networkPolicies:
+    enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+# Backup
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  retention: 30
+  s3Bucket: "bitcurrent-prod-db-backups"
+
+
+

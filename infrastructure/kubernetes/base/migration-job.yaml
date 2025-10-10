@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: bitcurrent-starter
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: postgres:15
+        command:
+          - /bin/bash
+          - -c
+          - |
+            echo "🔍 Testing database connection..."
+            psql "$DATABASE_URL" -c "SELECT version();" || exit 1
+            
+            echo ""
+            echo "📊 Running migrations..."
+            psql "$DATABASE_URL" -f /migrations/000001_init_schema.up.sql
+            
+            echo ""
+            echo "✅ Migrations complete!"
+            echo ""
+            echo "📋 Checking created tables..."
+            psql "$DATABASE_URL" -c "\dt"
+        env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: bitcurrent-secrets
+                key: database_url
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: bitcurrent-secrets
+                key: database_password
+        volumeMounts:
+          - name: migrations
+            mountPath: /migrations
+      volumes:
+        - name: migrations
+          configMap:
+            name: db-migration
+
+

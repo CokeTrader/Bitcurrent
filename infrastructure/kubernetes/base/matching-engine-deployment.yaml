@@ -1,0 +1,120 @@
+# BitCurrent Exchange - Matching Engine Deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-engine
+  namespace: bitcurrent-prod
+  labels:
+    app: matching-engine
+    component: trading
+spec:
+  replicas: 1  # Single instance per symbol group (no horizontal scaling)
+  strategy:
+    type: Recreate  # Ensure only one instance active
+  selector:
+    matchLabels:
+      app: matching-engine
+  template:
+    metadata:
+      labels:
+        app: matching-engine
+        component: trading
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+        prometheus.io/path: "/metrics"
+    spec:
+      nodeSelector:
+        NodeType: matching-engine
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "matching"
+          effect: "NoSchedule"
+      containers:
+        - name: matching-engine
+          image: ghcr.io/bitcurrent-exchange/matching-engine:latest
+          imagePullPolicy: Always
+          ports:
+            - name: grpc
+              containerPort: 9090
+              protocol: TCP
+            - name: metrics
+              containerPort: 9091
+              protocol: TCP
+          env:
+            - name: RUST_LOG
+              value: "info"
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: bitcurrent-config
+                  key: kafka_brokers
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bitcurrent-secrets
+                  key: redis_url
+            - name: SNAPSHOT_PATH
+              value: "/data/snapshots"
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "4000m"
+            limits:
+              memory: "16Gi"
+              cpu: "8000m"
+          volumeMounts:
+            - name: snapshots
+              mountPath: /data/snapshots
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 9091
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 9091
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: snapshots
+          persistentVolumeClaim:
+            claimName: matching-engine-snapshots
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-engine
+  namespace: bitcurrent-prod
+spec:
+  selector:
+    app: matching-engine
+  ports:
+    - name: grpc
+      port: 9090
+      targetPort: 9090
+    - name: metrics
+      port: 9091
+      targetPort: 9091
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matching-engine-snapshots
+  namespace: bitcurrent-prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: gp3
+
+
+

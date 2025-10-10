@@ -1,0 +1,43 @@
+# BitCurrent Exchange - ConfigMap
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bitcurrent-config
+  namespace: bitcurrent-prod
+data:
+  # Kafka
+  kafka_brokers: "bitcurrent-prod-kafka.amazonaws.com:9092"
+  kafka_topics_trades: "trades"
+  kafka_topics_orders: "orders"
+  kafka_topics_settlements: "settlements"
+  kafka_topics_notifications: "notifications"
+  
+  # Service URLs (internal)
+  matching_engine_url: "matching-engine:9090"
+  order_gateway_url: "order-gateway:8081"
+  ledger_service_url: "ledger-service:8082"
+  settlement_service_url: "settlement-service:8083"
+  market_data_service_url: "market-data-service:8084"
+  compliance_service_url: "compliance-service:8085"
+  
+  # Features
+  enable_2fa: "true"
+  enable_margin_trading: "false"
+  enable_derivatives: "false"
+  
+  # Trading configuration
+  maker_fee_bps: "10"
+  taker_fee_bps: "15"
+  minimum_order_size_gbp: "10"
+  
+  # Custody thresholds
+  hot_wallet_threshold: "0.02"
+  cold_wallet_percentage: "0.90"
+  
+  # Environment
+  environment: "production"
+  log_level: "info"
+
+
+

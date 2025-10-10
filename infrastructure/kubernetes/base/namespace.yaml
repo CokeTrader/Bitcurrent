@@ -1,0 +1,12 @@
+# BitCurrent Exchange - Kubernetes Namespace
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bitcurrent-prod
+  labels:
+    name: bitcurrent-prod
+    environment: production
+
+
+

@@ -1,0 +1,35 @@
+# BitCurrent Exchange - Elasticsearch Configuration (Optional ELK Stack)
+
+# Elasticsearch configuration for log aggregation
+# Alternative to CloudWatch Logs
+
+cluster.name: bitcurrent-logs
+node.name: node-1
+network.host: 0.0.0.0
+http.port: 9200
+
+# Paths
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+# Memory
+bootstrap.memory_lock: true
+
+# Discovery
+discovery.type: single-node
+
+# Security (enable in production)
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Index lifecycle management
+xpack.ilm.enabled: true
+
+# Monitoring
+xpack.monitoring.enabled: true
+xpack.monitoring.collection.enabled: true
+
+
+

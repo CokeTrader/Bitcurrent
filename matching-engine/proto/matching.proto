@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package matching;
+
+// Matching Engine Service
+service MatchingEngine {
+  // Submit a new order
+  rpc SubmitOrder (OrderRequest) returns (OrderResponse);
+  
+  // Cancel an existing order
+  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse);
+  
+  // Get orderbook snapshot
+  rpc GetOrderBook (GetOrderBookRequest) returns (GetOrderBookResponse);
+}
+
+// Order submission request
+message OrderRequest {
+  string account_id = 1;
+  string symbol = 2;
+  string side = 3;  // "buy" or "sell"
+  string order_type = 4;  // "market", "limit", "stop", "stop_limit"
+  optional string price = 5;
+  string quantity = 6;
+  string time_in_force = 7;  // "GTC", "IOC", "FOK", "GTD"
+  bool post_only = 8;
+  optional string client_order_id = 9;
+}
+
+// Order submission response
+message OrderResponse {
+  bool success = 1;
+  string status = 2;  // "filled", "partial", "new", "rejected"
+  string message = 3;
+  uint32 trades_count = 4;
+}
+
+// Order cancellation request
+message CancelOrderRequest {
+  string symbol = 1;
+  string order_id = 2;
+}
+
+// Order cancellation response
+message CancelOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Orderbook request
+message GetOrderBookRequest {
+  string symbol = 1;
+  uint32 depth = 2;
+}
+
+// Price level in orderbook
+message PriceLevel {
+  string price = 1;
+  string quantity = 2;
+}
+
+// Orderbook response
+message GetOrderBookResponse {
+  string symbol = 1;
+  repeated PriceLevel bids = 2;
+  repeated PriceLevel asks = 3;
+}
+
+
+

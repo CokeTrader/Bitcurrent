@@ -1,0 +1,139 @@
+{
+  "dashboard": {
+    "title": "BitCurrent - Trading Overview",
+    "tags": ["trading", "overview"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Trading Volume (24h)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(matching_engine_trades_executed_total[5m])) * 300",
+            "legendFormat": "Trades per 5min"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Order Latency (P99)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, matching_engine_order_latency_seconds_bucket) * 1000",
+            "legendFormat": "P99 Latency (ms)"
+          },
+          {
+            "expr": "histogram_quantile(0.95, matching_engine_order_latency_seconds_bucket) * 1000",
+            "legendFormat": "P95 Latency (ms)"
+          },
+          {
+            "expr": "histogram_quantile(0.50, matching_engine_order_latency_seconds_bucket) * 1000",
+            "legendFormat": "P50 Latency (ms)"
+          }
+        ],
+        "yAxes": [{"label": "Milliseconds", "format": "ms"}]
+      },
+      {
+        "id": 3,
+        "title": "Active Orders by Symbol",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "matching_engine_active_orders",
+            "legendFormat": "{{symbol}}"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Order Types Distribution",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+        "targets": [
+          {
+            "expr": "sum by (order_type) (rate(matching_engine_orders_processed_total[5m]))",
+            "legendFormat": "{{order_type}}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Buy vs Sell Volume",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(rate(matching_engine_orders_processed_total{side=\"buy\"}[5m]))",
+            "legendFormat": "Buy Orders"
+          },
+          {
+            "expr": "sum(rate(matching_engine_orders_processed_total{side=\"sell\"}[5m]))",
+            "legendFormat": "Sell Orders"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Orderbook Depth",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "matching_engine_orderbook_depth{side=\"buy\"}",
+            "legendFormat": "Bids - {{symbol}}"
+          },
+          {
+            "expr": "matching_engine_orderbook_depth{side=\"sell\"}",
+            "legendFormat": "Asks - {{symbol}}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Trades Executed",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "sum(increase(matching_engine_trades_executed_total[24h]))",
+            "legendFormat": "24h Trades"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Order Rejection Rate",
+        "type": "gauge",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 16},
+        "targets": [
+          {
+            "expr": "rate(order_gateway_orders_rejected_total[5m]) / rate(order_gateway_orders_total[5m]) * 100"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 20, "color": "red"}
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 36,
+    "version": 1
+  }
+}
+
+
+

@@ -1,0 +1,389 @@
+---
+# API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: bitcurrent-starter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: 805694794171.dkr.ecr.eu-west-2.amazonaws.com/bitcurrent/api-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9091
+          name: metrics
+        env:
+        - name: BITCURRENT_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: database_url
+        - name: BITCURRENT_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: redis_url
+        - name: BITCURRENT_KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: kafka_brokers
+        - name: BITCURRENT_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: jwt_secret
+        - name: BITCURRENT_LOGGER_LEVEL
+          value: "debug"
+        - name: BITCURRENT_LOGGER_ENVIRONMENT
+          value: "starter"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+# API Gateway Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: bitcurrent-starter
+spec:
+  type: LoadBalancer
+  selector:
+    app: api-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  - name: metrics
+    port: 9091
+    targetPort: 9091
+---
+# Order Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-gateway
+  namespace: bitcurrent-starter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-gateway
+  template:
+    metadata:
+      labels:
+        app: order-gateway
+    spec:
+      containers:
+      - name: order-gateway
+        image: 805694794171.dkr.ecr.eu-west-2.amazonaws.com/bitcurrent/order-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: bitcurrent-env
+        env:
+        - name: BITCURRENT_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: database_url
+        - name: BITCURRENT_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: redis_url
+        - name: BITCURRENT_KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: kafka_brokers
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+---
+# Order Gateway Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-gateway
+  namespace: bitcurrent-starter
+spec:
+  type: ClusterIP
+  selector:
+    app: order-gateway
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+# Ledger Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-service
+  namespace: bitcurrent-starter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ledger-service
+  template:
+    metadata:
+      labels:
+        app: ledger-service
+    spec:
+      containers:
+      - name: ledger-service
+        image: 805694794171.dkr.ecr.eu-west-2.amazonaws.com/bitcurrent/ledger-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: bitcurrent-env
+        env:
+        - name: BITCURRENT_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: database_url
+        - name: BITCURRENT_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: redis_url
+        - name: BITCURRENT_KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: kafka_brokers
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+---
+# Ledger Service Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-service
+  namespace: bitcurrent-starter
+spec:
+  type: ClusterIP
+  selector:
+    app: ledger-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+# Settlement Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: settlement-service
+  namespace: bitcurrent-starter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: settlement-service
+  template:
+    metadata:
+      labels:
+        app: settlement-service
+    spec:
+      containers:
+      - name: settlement-service
+        image: 805694794171.dkr.ecr.eu-west-2.amazonaws.com/bitcurrent/settlement-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: bitcurrent-env
+        env:
+        - name: BITCURRENT_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: database_url
+        - name: BITCURRENT_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: redis_url
+        - name: BITCURRENT_KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: kafka_brokers
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+---
+# Settlement Service Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: settlement-service
+  namespace: bitcurrent-starter
+spec:
+  type: ClusterIP
+  selector:
+    app: settlement-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+# Market Data Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-data-service
+  namespace: bitcurrent-starter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: market-data-service
+  template:
+    metadata:
+      labels:
+        app: market-data-service
+    spec:
+      containers:
+      - name: market-data-service
+        image: 805694794171.dkr.ecr.eu-west-2.amazonaws.com/bitcurrent/market-data-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: bitcurrent-env
+        env:
+        - name: BITCURRENT_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: database_url
+        - name: BITCURRENT_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: redis_url
+        - name: BITCURRENT_KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: kafka_brokers
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+---
+# Market Data Service Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: market-data-service
+  namespace: bitcurrent-starter
+spec:
+  type: ClusterIP
+  selector:
+    app: market-data-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+# Compliance Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliance-service
+  namespace: bitcurrent-starter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compliance-service
+  template:
+    metadata:
+      labels:
+        app: compliance-service
+    spec:
+      containers:
+      - name: compliance-service
+        image: 805694794171.dkr.ecr.eu-west-2.amazonaws.com/bitcurrent/compliance-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: bitcurrent-env
+        env:
+        - name: BITCURRENT_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: database_url
+        - name: BITCURRENT_REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: redis_url
+        - name: BITCURRENT_KAFKA_BROKERS
+          valueFrom:
+            secretKeyRef:
+              name: bitcurrent-secrets
+              key: kafka_brokers
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+---
+# Compliance Service Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: compliance-service
+  namespace: bitcurrent-starter
+spec:
+  type: ClusterIP
+  selector:
+    app: compliance-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+

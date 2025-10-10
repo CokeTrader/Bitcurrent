@@ -1,0 +1,133 @@
+{
+  "dashboard": {
+    "title": "BitCurrent - System Health",
+    "tags": ["system", "health", "infrastructure"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Uptime",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "avg_over_time(up{job=~\"api-gateway|matching-engine|ledger-service|settlement-service|market-data-service|compliance-service\"}[24h]) * 100",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 99, "color": "yellow"},
+                {"value": 99.9, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "HTTP Request Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total[5m])) by (job)",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "HTTP Error Rate",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total{code=~\"5..\"}[5m])) by (job)",
+            "legendFormat": "{{job}} (5xx)"
+          },
+          {
+            "expr": "sum(rate(http_requests_total{code=~\"4..\"}[5m])) by (job)",
+            "legendFormat": "{{job}} (4xx)"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Database Connections",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "pg_stat_database_numbackends",
+            "legendFormat": "Active Connections"
+          },
+          {
+            "expr": "pg_settings_max_connections",
+            "legendFormat": "Max Connections"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Redis Memory Usage",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 12},
+        "targets": [
+          {
+            "expr": "redis_memory_used_bytes / redis_memory_max_bytes * 100",
+            "legendFormat": "Memory Used %"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Kafka Consumer Lag",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 12},
+        "targets": [
+          {
+            "expr": "kafka_consumer_lag",
+            "legendFormat": "{{topic}} - {{consumer_group}}"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "CPU Usage by Service",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total[5m]) * 100",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "yAxes": [{"label": "CPU %", "format": "percent"}]
+      },
+      {
+        "id": 8,
+        "title": "Memory Usage by Service",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes / 1024 / 1024",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "yAxes": [{"label": "Memory (MB)", "format": "decmbytes"}]
+      }
+    ],
+    "refresh": "30s",
+    "time": {"from": "now-6h", "to": "now"}
+  }
+}
+
+
+

@@ -1,0 +1,149 @@
+# BitCurrent Exchange - System Alerts
+# Prometheus alerting rules for system health
+
+groups:
+  - name: system
+    interval: 30s
+    rules:
+      # Service Health
+      - alert: ServiceDown
+        expr: up{job=~"api-gateway|order-gateway|ledger-service|settlement-service|market-data-service|compliance-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been unreachable for 2 minutes"
+
+      - alert: ServiceFlapping
+        expr: changes(up[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service {{ $labels.job }} is flapping"
+          description: "Service restarted {{ $value }} times in 10 minutes"
+
+      # Database Alerts
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "Database has been down for 1 minute - CRITICAL"
+
+      - alert: PostgreSQLConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL connections high"
+          description: "{{ $value | humanizePercentage }} of max connections used"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_statements_mean_exec_time[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Average query time: {{ $value }}ms"
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Cache service unavailable - degraded performance expected"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage high"
+          description: "{{ $value | humanizePercentage }} memory used"
+
+      - alert: RedisEvictions
+        expr: rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "High Redis key eviction rate"
+          description: "{{ $value }} keys/sec being evicted - consider scaling"
+
+      # Kafka Alerts
+      - alert: KafkaDown
+        expr: up{job="kafka"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: messaging
+        annotations:
+          summary: "Kafka broker is down"
+          description: "Message queue unavailable - event processing stopped"
+
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 10000
+        for: 5m
+        labels:
+          severity: warning
+          component: messaging
+        annotations:
+          summary: "Kafka consumer lag high"
+          description: "Consumer lag: {{ $value }} messages"
+
+      # CPU and Memory
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.job }}"
+          description: "CPU usage: {{ $value | humanizePercentage }}"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / process_virtual_memory_max_bytes > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage: {{ $value | humanizePercentage }}"
+
+      # Disk Space
+      - alert: DiskSpaceLow
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining"
+
+      - alert: DiskSpaceCritical
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.05
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space critical"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining - URGENT"
+
+
+

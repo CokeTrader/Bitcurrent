@@ -1,0 +1,173 @@
+version: '3.9'
+
+# BitCurrent Exchange - Complete Monitoring Stack
+# Extends main docker-compose.yml with additional monitoring services
+
+services:
+  # Alertmanager for handling alerts
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: bitcurrent-alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: bitcurrent-node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # cAdvisor for container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: bitcurrent-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Postgres Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: bitcurrent-postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://bitcurrent:localdev@postgres:5432/bitcurrent?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: bitcurrent-redis-exporter
+    environment:
+      REDIS_ADDR: "redis:6379"
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Kafka Exporter
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: bitcurrent-kafka-exporter
+    command:
+      - '--kafka.server=kafka:29092'
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Elasticsearch (optional - for log aggregation)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: bitcurrent-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./logging/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Logstash (optional - for log processing)
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: bitcurrent-logstash
+    ports:
+      - "5000:5000/tcp"
+      - "9600:9600"
+    volumes:
+      - ./logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      - elasticsearch
+      - kafka
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Kibana (optional - for log visualization)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: bitcurrent-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      SERVER_NAME: bitcurrent-kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Uptime monitoring with Blackbox Exporter
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: bitcurrent-blackbox
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+volumes:
+  alertmanager_data:
+    driver: local
+    name: bitcurrent-alertmanager-data
+  elasticsearch_data:
+    driver: local
+    name: bitcurrent-elasticsearch-data
+
+networks:
+  bitcurrent-network:
+    external: true
+
+
+

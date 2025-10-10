@@ -1,0 +1,22 @@
+# BitCurrent Exchange - Helm Chart
+
+apiVersion: v2
+name: bitcurrent
+description: BitCurrent Cryptocurrency Exchange Platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - cryptocurrency
+  - exchange
+  - trading
+  - bitcoin
+  - ethereum
+maintainers:
+  - name: BitCurrent Team
+    email: engineering@bitcurrent.co.uk
+sources:
+  - https://github.com/bitcurrent-exchange/platform
+
+
+

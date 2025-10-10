@@ -1,0 +1,264 @@
+version: '3.9'
+
+# BitCurrent Exchange - Local Development Environment
+# This Docker Compose file sets up all infrastructure dependencies
+
+services:
+  # PostgreSQL Database (Primary)
+  postgres:
+    image: postgres:15-alpine
+    container_name: bitcurrent-postgres
+    environment:
+      POSTGRES_DB: bitcurrent
+      POSTGRES_USER: bitcurrent
+      POSTGRES_PASSWORD: localdev
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/postgresql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitcurrent -d bitcurrent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: bitcurrent-redis
+    command: redis-server --appendonly yes --requirepass ""
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Zookeeper (for Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: bitcurrent-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SYNC_LIMIT: 2
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Kafka Message Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bitcurrent-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # TimescaleDB (for time-series market data)
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: bitcurrent-timescale
+    environment:
+      POSTGRES_DB: marketdata
+      POSTGRES_USER: bitcurrent
+      POSTGRES_PASSWORD: localdev
+    ports:
+      - "5433:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitcurrent -d marketdata"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Prometheus (Metrics Collection)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: bitcurrent-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Grafana (Metrics Visualization)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bitcurrent-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./infrastructure/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Jaeger (Distributed Tracing)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: bitcurrent-jaeger
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Kafka UI (for development)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: bitcurrent-kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8090:8080"
+    depends_on:
+      - kafka
+      - zookeeper
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # Redis Commander (for development)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: bitcurrent-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8091:8081"
+    depends_on:
+      - redis
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+  # pgAdmin (PostgreSQL management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bitcurrent-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bitcurrent.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - bitcurrent-network
+    restart: unless-stopped
+
+# Docker networks
+networks:
+  bitcurrent-network:
+    driver: bridge
+    name: bitcurrent-network
+
+# Persistent volumes
+volumes:
+  postgres_data:
+    driver: local
+    name: bitcurrent-postgres-data
+  redis_data:
+    driver: local
+    name: bitcurrent-redis-data
+  kafka_data:
+    driver: local
+    name: bitcurrent-kafka-data
+  zookeeper_data:
+    driver: local
+    name: bitcurrent-zookeeper-data
+  zookeeper_logs:
+    driver: local
+    name: bitcurrent-zookeeper-logs
+  timescale_data:
+    driver: local
+    name: bitcurrent-timescale-data
+  prometheus_data:
+    driver: local
+    name: bitcurrent-prometheus-data
+  grafana_data:
+    driver: local
+    name: bitcurrent-grafana-data
+  pgadmin_data:
+    driver: local
+    name: bitcurrent-pgadmin-data
+
+
+

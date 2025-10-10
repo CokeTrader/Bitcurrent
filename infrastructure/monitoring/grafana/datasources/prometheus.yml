@@ -1,0 +1,47 @@
+# BitCurrent Exchange - Grafana Datasource Configuration
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+    version: 1
+
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: bitcurrent
+    user: bitcurrent
+    secureJsonData:
+      password: 'localdev'
+    jsonData:
+      sslmode: 'disable'
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 3600
+    version: 1
+
+  - name: TimescaleDB
+    type: postgres
+    access: proxy
+    url: timescaledb:5432
+    database: marketdata
+    user: bitcurrent
+    secureJsonData:
+      password: 'localdev'
+    jsonData:
+      sslmode: 'disable'
+      timescaledb: true
+    version: 1
+
+
+

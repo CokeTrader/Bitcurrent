@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bitcurrent-env
+  namespace: bitcurrent-starter
+data:
+  # Service configuration
+  BITCURRENT_SERVER_PORT: "8080"
+  BITCURRENT_SERVER_HOST: "0.0.0.0"
+  
+  # Logger
+  BITCURRENT_LOGGER_LEVEL: "debug"
+  BITCURRENT_LOGGER_ENVIRONMENT: "starter"
+  
+  # Database (individual settings)
+  BITCURRENT_DATABASE_MAX_CONNS: "50"
+  BITCURRENT_DATABASE_MIN_CONNS: "10"
+  
+  # Redis
+  BITCURRENT_REDIS_POOL_SIZE: "20"
+  BITCURRENT_REDIS_MIN_IDLE_CONNS: "5"
+  
+  # Kafka
+  BITCURRENT_KAFKA_BATCH_SIZE: "100"
+  
+  # Metrics
+  BITCURRENT_METRICS_PORT: "9091"
+
+

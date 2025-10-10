@@ -1,0 +1,93 @@
+# BitCurrent Exchange - Trading Alerts
+# Prometheus alerting rules for trading operations
+
+groups:
+  - name: trading
+    interval: 30s
+    rules:
+      # Matching Engine Alerts
+      - alert: HighMatchingLatency
+        expr: histogram_quantile(0.99, matching_engine_order_latency_seconds_bucket) > 0.010
+        for: 5m
+        labels:
+          severity: warning
+          component: matching-engine
+        annotations:
+          summary: "High order matching latency"
+          description: "P99 latency is {{ $value }}s (threshold: 10ms)"
+
+      - alert: CriticalMatchingLatency
+        expr: histogram_quantile(0.99, matching_engine_order_latency_seconds_bucket) > 0.050
+        for: 2m
+        labels:
+          severity: critical
+          component: matching-engine
+        annotations:
+          summary: "Critical order matching latency"
+          description: "P99 latency is {{ $value }}s (threshold: 50ms) - URGENT"
+
+      - alert: MatchingEngineThroughputLow
+        expr: rate(matching_engine_orders_processed_total[5m]) < 100
+        for: 10m
+        labels:
+          severity: warning
+          component: matching-engine
+        annotations:
+          summary: "Low matching engine throughput"
+          description: "Processing {{ $value }} orders/sec (expected: >100)"
+
+      - alert: MatchingEngineDown
+        expr: up{job="matching-engine"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: matching-engine
+        annotations:
+          summary: "Matching engine is down"
+          description: "Matching engine has been down for 1 minute - CRITICAL"
+
+      # Order Gateway Alerts
+      - alert: HighOrderRejectionRate
+        expr: rate(order_gateway_orders_rejected_total[5m]) / rate(order_gateway_orders_total[5m]) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+          component: order-gateway
+        annotations:
+          summary: "High order rejection rate"
+          description: "{{ $value | humanizePercentage }} of orders being rejected"
+
+      # Trading Volume Alerts
+      - alert: TradingVolumeSpike
+        expr: rate(matching_engine_trades_executed_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: info
+          component: matching-engine
+        annotations:
+          summary: "Trading volume spike detected"
+          description: "{{ $value }} trades/sec (possible market event)"
+
+      - alert: NoTradesExecuted
+        expr: rate(matching_engine_trades_executed_total[15m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+          component: matching-engine
+        annotations:
+          summary: "No trades executed recently"
+          description: "No trades in the last 30 minutes - check liquidity"
+
+      # Orderbook Alerts
+      - alert: EmptyOrderbook
+        expr: matching_engine_active_orders{symbol=~"BTC-GBP|ETH-GBP"} == 0
+        for: 15m
+        labels:
+          severity: warning
+          component: matching-engine
+        annotations:
+          summary: "Empty orderbook for major pair"
+          description: "{{ $labels.symbol }} has no active orders"
+
+
+

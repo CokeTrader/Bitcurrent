@@ -1,0 +1,103 @@
+# BitCurrent Exchange - Staging Environment Values
+
+global:
+  environment: staging
+  domain: staging.bitcurrent.co.uk
+
+# Reduced resources for staging
+matchingEngine:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: "2000m"
+    limits:
+      memory: "8Gi"
+      cpu: "4000m"
+
+apiGateway:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+
+orderGateway:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+
+ledgerService:
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+
+settlementService:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+
+marketDataService:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+
+complianceService:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+
+frontend:
+  replicaCount: 1
+
+# External resources (from Terraform)
+postgresql:
+  external:
+    host: "bitcurrent-staging-db.xxxxx.eu-west-2.rds.amazonaws.com"
+
+redis:
+  external:
+    host: "bitcurrent-staging-redis.xxxxx.cache.amazonaws.com"
+
+# Kafka (use local Kafka pod in staging)
+kafka:
+  enabled: true  # Run Kafka in cluster for staging
+
+# Monitoring (lighter in staging)
+monitoring:
+  prometheus:
+    retention: 7d
+  grafana:
+    adminPassword: "staging-admin-password"
+
+# Ingress
+ingress:
+  hosts:
+    - host: staging-api.bitcurrent.co.uk
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: staging-bitcurrent-tls
+      hosts:
+        - staging-api.bitcurrent.co.uk
+
+
+

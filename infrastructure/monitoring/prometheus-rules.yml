@@ -1,0 +1,62 @@
+# BitCurrent Exchange - Prometheus Recording Rules
+# Pre-computed queries for performance
+
+groups:
+  - name: trading_metrics
+    interval: 30s
+    rules:
+      # Trading volume in GBP
+      - record: trade_volume_gbp
+        expr: sum by (symbol) (rate(matching_engine_trades_executed_total[5m]) * avg(trade_price_gbp))
+
+      # Order fill rate
+      - record: order_fill_rate
+        expr: sum(rate(matching_engine_orders_processed_total{status="filled"}[5m])) / sum(rate(matching_engine_orders_processed_total[5m]))
+
+      # Average spread percentage
+      - record: avg_spread_percent
+        expr: avg by (symbol) ((best_ask - best_bid) / best_bid * 100)
+
+  - name: business_metrics
+    interval: 60s
+    rules:
+      # Daily active users
+      - record: daily_active_users
+        expr: count(count by (user_id) (rate(http_requests_total{path=~"/api/.*"}[24h]) > 0))
+
+      # Total platform value in GBP
+      - record: total_platform_value_gbp
+        expr: sum by (currency) (wallet_total_balance * exchange_rate_to_gbp)
+
+      # Revenue from fees (24h)
+      - record: revenue_24h_gbp
+        expr: sum(increase(trading_fees_collected_gbp[24h]))
+
+  - name: performance_metrics
+    interval: 15s
+    rules:
+      # API request rate
+      - record: api_request_rate
+        expr: sum by (job, code) (rate(http_requests_total[5m]))
+
+      # API success rate
+      - record: api_success_rate
+        expr: sum(rate(http_requests_total{code=~"2.."}[5m])) / sum(rate(http_requests_total[5m]))
+
+      # Database query duration P99
+      - record: db_query_duration_p99
+        expr: histogram_quantile(0.99, rate(db_query_duration_seconds_bucket[5m]))
+
+  - name: custody_metrics
+    interval: 60s
+    rules:
+      # Hot wallet balance percentage
+      - record: hot_wallet_percent
+        expr: sum(hot_wallet_balance_btc) / sum(total_wallet_balance_btc) * 100
+
+      # Cold wallet balance percentage
+      - record: cold_wallet_percent
+        expr: sum(cold_wallet_balance_btc) / sum(total_wallet_balance_btc) * 100
+
+
+

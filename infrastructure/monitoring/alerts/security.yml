@@ -1,0 +1,104 @@
+# BitCurrent Exchange - Security Alerts
+# Prometheus alerting rules for security events
+
+groups:
+  - name: security
+    interval: 30s
+    rules:
+      # Authentication Alerts
+      - alert: HighFailedLoginRate
+        expr: rate(auth_login_failed_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High failed login rate"
+          description: "{{ $value }} failed logins/sec - possible brute force attack"
+
+      - alert: AccountLockoutSpike
+        expr: rate(auth_accounts_locked_total[15m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Account lockout spike"
+          description: "{{ $value }} accounts locked in 15 minutes"
+
+      - alert: UnauthorizedAccessAttempts
+        expr: rate(http_requests_total{code="401"}[5m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High unauthorized access attempts"
+          description: "{{ $value }} 401 errors/sec - possible attack"
+
+      # API Abuse
+      - alert: RateLimitExceeded
+        expr: rate(http_requests_total{code="429"}[5m]) > 100
+        for: 10m
+        labels:
+          severity: info
+          component: api
+        annotations:
+          summary: "High rate limit violations"
+          description: "{{ $value }} rate limit hits/sec"
+
+      - alert: SuspiciousAPIActivity
+        expr: rate(api_requests_suspicious_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Suspicious API activity detected"
+          description: "{{ $value }} suspicious requests/sec from {{ $labels.ip }}"
+
+      # Withdrawal Security
+      - alert: UnusualWithdrawalPattern
+        expr: withdrawal_amount_usd > 100000
+        for: 1m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Large withdrawal detected"
+          description: "Withdrawal of ${{ $value }} requires immediate review"
+
+      - alert: RapidWithdrawals
+        expr: rate(withdrawals_total{account_id=~".*"}[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Rapid withdrawal requests from single account"
+          description: "Account {{ $labels.account_id }} making {{ $value }} withdrawals/10min"
+
+      # 2FA Alerts
+      - alert: MassiveUserDisabling2FA
+        expr: rate(security_2fa_disabled_total[1h]) > 10
+        for: 30m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Many users disabling 2FA"
+          description: "{{ $value }} users disabled 2FA in past hour - investigate"
+
+      # Security Events
+      - alert: HighSeveritySecurityEvents
+        expr: rate(security_events_total{severity="critical"}[5m]) > 1
+        for: 2m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Critical security events detected"
+          description: "{{ $value }} critical security events/sec"
+
+
+
