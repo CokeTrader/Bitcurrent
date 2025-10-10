@@ -54,20 +54,36 @@ const config = {
         },
         // Trading specific colors
         buy: {
-          DEFAULT: "#10b981",
-          light: "#34d399",
-          dark: "#059669",
+          DEFAULT: "#00C853", // Green for buy actions
+          light: "#69F0AE",
+          dark: "#00A344",
         },
         sell: {
-          DEFAULT: "#ef4444",
-          light: "#f87171",
-          dark: "#dc2626",
+          DEFAULT: "#F44336", // Red for sell actions
+          light: "#FF6B6B",
+          dark: "#D32F2F",
         },
+        bitcoin: "#F7931A", // Bitcoin orange
+        warning: "#FFB020", // Warning yellow
+        purple: "#6200EA", // Innovation accent
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+      },
+      fontSize: {
+        'portfolio': ['48px', { lineHeight: '1.2', fontWeight: '700' }], // Large portfolio balance
+        'price-large': ['32px', { lineHeight: '1.3', fontWeight: '600' }], // Trading prices
+        'price-medium': ['24px', { lineHeight: '1.4', fontWeight: '500' }],
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        'card': '0 4px 8px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 8px 16px rgba(0, 0, 0, 0.15)',
       },
       keyframes: {
         "accordion-down": {

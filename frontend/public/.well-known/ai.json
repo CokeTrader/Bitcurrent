@@ -1,0 +1,51 @@
+{
+  "name": "BitCurrent Exchange",
+  "description": "UK's premier cryptocurrency exchange for trading Bitcoin, Ethereum, and other digital assets with GBP",
+  "version": "1.0.0",
+  "access": {
+    "public_endpoints": [
+      "/",
+      "/markets",
+      "/trade/*",
+      "/legal/*"
+    ],
+    "authenticated_endpoints": [
+      "/dashboard",
+      "/account/*"
+    ]
+  },
+  "features": {
+    "trading_pairs": [
+      "BTC-GBP",
+      "ETH-GBP",
+      "BNB-GBP",
+      "XRP-GBP",
+      "SOL-GBP",
+      "ADA-GBP",
+      "LINK-GBP",
+      "AVAX-GBP",
+      "DOT-GBP",
+      "UNI-GBP"
+    ],
+    "base_currency": "GBP",
+    "live_data": true,
+    "api_available": true
+  },
+  "compliance": {
+    "jurisdiction": "United Kingdom",
+    "fca_application": "pending",
+    "kyc_required": true
+  },
+  "contact": {
+    "website": "https://bitcurrent.exchange",
+    "support": "support@bitcurrent.co.uk"
+  },
+  "ai_access": {
+    "crawlable": true,
+    "rate_limit": "1 request per second",
+    "preferred_crawl_time": "off-peak hours (00:00-06:00 UTC)",
+    "sitemap": "https://bitcurrent.exchange/sitemap.xml",
+    "robots": "https://bitcurrent.exchange/robots.txt"
+  }
+}
+

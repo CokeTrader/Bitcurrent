@@ -4,64 +4,138 @@
 
 @layer base {
   :root {
+    /* Light mode - Professional banking aesthetic */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 211 100% 15%; /* Navy blue text */
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 211 100% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 211 100% 15%;
+    
+    /* Navy blue primary (trust signal) */
+    --primary: 203 87% 17%; /* #0B4650 */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 211 100% 15%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 10% 45%;
+    --accent: 217 91% 60%; /* #3B82F6 - bright blue accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 4 90% 58%; /* Red */
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem; /* 12px - modern rounded corners */
+    
+    /* Animation duration for theme transitions */
+    --theme-transition: 0.4s;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    /* Dark mode - Sophisticated gray (NOT pure black) */
+    --background: 0 0% 7%; /* #121212 */
+    --foreground: 0 0% 87%; /* High contrast for readability */
+    --card: 0 0% 12%; /* #1E1E1E - elevated surfaces */
+    --card-foreground: 0 0% 87%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 87%;
+    
+    /* Bright blue primary in dark mode */
+    --primary: 217 91% 60%; /* #3B82F6 */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 87%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 4 90% 58%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 217 91% 60%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    transition-property: background-color, border-color, color;
+    transition-duration: var(--theme-transition);
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  /* Accessibility: Skip to main content link */
+  .skip-to-main {
+    @apply absolute -top-10 left-0 bg-primary text-primary-foreground px-4 py-2 z-50;
+    @apply focus:top-0 transition-all;
+  }
+  
+  /* Focus indicators - WCAG 2.2 compliant */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  
+  /* Reduced motion support for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Animated gradient for hero text */
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 

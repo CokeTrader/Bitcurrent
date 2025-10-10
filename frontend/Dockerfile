@@ -4,13 +4,13 @@
 # Dependencies stage
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json* ./
+COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Builder stage
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY frontend/ .
+COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 
 # Build arguments for API URL

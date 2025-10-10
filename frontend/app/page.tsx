@@ -1,9 +1,21 @@
-import Link from "next/link";
-import { ArrowRight, Shield, Zap, LineChart } from "lucide-react";
+import Link from "next/link"
+import { ArrowRight, Shield, Zap, LineChart, Users, DollarSign, TrendingUp } from "lucide-react"
+import { LinkButton } from "@/components/ui/link-button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { PriceTicker } from "@/components/ui/price-ticker"
+import { Header } from "@/components/layout/header"
+
+export const dynamic = 'force-dynamic'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      {/* Live Price Ticker with REAL CoinGecko data */}
+      <PriceTicker />
+      
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="flex flex-col items-center justify-center text-center space-y-8">
@@ -20,52 +32,52 @@ export default function HomePage() {
           </p>
 
           <div className="flex gap-4 mt-8">
-            <Link
-              href="/auth/register"
-              className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition flex items-center gap-2"
-            >
-              Get Started <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/trade/BTC-GBP"
-              className="px-8 py-4 border border-border rounded-lg font-semibold hover:bg-muted transition"
-            >
+            <LinkButton href="/auth/register" size="lg" className="flex items-center gap-2">
+              Get Started <ArrowRight className="h-5 w-5" />
+            </LinkButton>
+            <LinkButton href="/trade/BTC-GBP" size="lg" variant="outline">
               Start Trading
-            </Link>
+            </LinkButton>
           </div>
         </div>
 
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-          <div className="p-6 rounded-lg border border-border bg-card">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-              <Zap className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Ultra-Low Latency</h3>
-            <p className="text-muted-foreground">
-              Sub-2ms matching engine ensures your orders execute instantly at the best prices.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Ultra-Low Latency</h3>
+              <p className="text-muted-foreground">
+                Sub-2ms matching engine ensures your orders execute instantly at the best prices.
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="p-6 rounded-lg border border-border bg-card">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-              <Shield className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Bank-Grade Security</h3>
-            <p className="text-muted-foreground">
-              Multi-sig cold storage, insurance coverage, and FCA-compliant operations protect your assets.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <Shield className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Bank-Grade Security</h3>
+              <p className="text-muted-foreground">
+                Multi-sig cold storage, insurance coverage, and FCA-compliant operations protect your assets.
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="p-6 rounded-lg border border-border bg-card">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-              <LineChart className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Professional Tools</h3>
-            <p className="text-muted-foreground">
-              Advanced charts, real-time data, and institutional-grade trading features.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <LineChart className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Professional Tools</h3>
+              <p className="text-muted-foreground">
+                Advanced charts, real-time data, and institutional-grade trading features.
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* CTA */}
@@ -80,8 +92,6 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
-
-
 

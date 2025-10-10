@@ -111,6 +111,11 @@ func main() {
 	api.HandleFunc("/orderbook/{symbol}", marketHandler.GetOrderbook).Methods("GET")
 	api.HandleFunc("/ticker/{symbol}", marketHandler.GetTicker).Methods("GET")
 
+	// Handle CORS preflight requests for all API routes
+	api.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	// Protected routes (auth required)
 	protected := api.PathPrefix("").Subrouter()
 	protected.Use(middleware.AuthMiddleware(jwtManager, log))
@@ -176,6 +181,3 @@ func main() {
 
 	log.Info("API Gateway stopped")
 }
-
-
-

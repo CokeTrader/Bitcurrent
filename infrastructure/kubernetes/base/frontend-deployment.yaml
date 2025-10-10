@@ -1,10 +1,11 @@
----
-# Frontend Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
   namespace: bitcurrent-starter
+  labels:
+    app: frontend
+    tier: frontend
 spec:
   replicas: 1
   selector:
@@ -49,19 +50,19 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
 ---
-# Frontend Service
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
   namespace: bitcurrent-starter
+  labels:
+    app: frontend
 spec:
   type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
   selector:
     app: frontend
-  ports:
-  - name: http
-    port: 80
-    targetPort: 3000
-
-
