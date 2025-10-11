@@ -1,0 +1,111 @@
+🔧 RAILWAY DEPLOYMENT TROUBLESHOOTING
+=====================================
+
+**ISSUE**: Backend showing "Application not found" (404 error)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 CHECKLIST - VERIFY THESE IN RAILWAY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**1. CHECK ROOT DIRECTORY SETTING**
+   - Click on your backend service
+   - Go to "Settings" tab
+   - Look for "Root Directory" or "Source" setting
+   - Should be set to: `backend-broker`
+   - If it's blank or set to root `/`, change it to `backend-broker`
+   - This is THE MOST COMMON issue!
+
+**2. CHECK DEPLOYMENT STATUS**
+   - Click on your backend service
+   - Go to "Deployments" tab
+   - Look at the latest deployment:
+     - 🟢 Green = Success (good!)
+     - 🔴 Red = Failed (need to fix)
+     - 🟡 Yellow = Building (wait)
+   - If RED (failed), click on it and check the logs
+
+**3. CHECK BUILD LOGS**
+   - Click on your backend service
+   - Go to "Logs" tab
+   - Look for red error messages
+   - Common errors:
+     - "Cannot find module" = missing dependencies
+     - "ENOENT: no such file or directory" = wrong root directory
+     - "listen EADDRINUSE" = port conflict (shouldn't happen on Railway)
+
+**4. CHECK ENVIRONMENT VARIABLES**
+   - Click on your backend service
+   - Go to "Variables" tab
+   - You should see at least 15 variables
+   - Critical ones:
+     - NODE_ENV=production
+     - PORT=3000
+     - JWT_SECRET=(long random string)
+     - DATABASE_URL=${{Postgres.DATABASE_URL}}
+
+**5. CHECK POSTGRESQL DATABASE**
+   - In your project, you should see TWO services:
+     1. Your backend service (Node.js)
+     2. PostgreSQL database
+   - If you only see one, add PostgreSQL:
+     - Click "+ New"
+     - Select "Database" → "PostgreSQL"
+     - Wait 1-2 minutes for provisioning
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 QUICK FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**FIX #1: SET ROOT DIRECTORY**
+1. Click backend service → Settings
+2. Find "Root Directory" field
+3. Enter: `backend-broker`
+4. Railway will auto-redeploy (wait 2-3 minutes)
+
+**FIX #2: TRIGGER MANUAL REDEPLOY**
+1. Click backend service → Deployments
+2. Click on the latest deployment
+3. Click "Redeploy" button (top right)
+4. Wait 2-3 minutes
+
+**FIX #3: CHECK DOMAIN GENERATION**
+1. Click backend service → Settings
+2. Scroll to "Domains" section
+3. If no domain listed, click "Generate Domain"
+4. Copy the new domain (e.g., `backend-broker-production-xxxx.up.railway.app`)
+5. Use that domain instead
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📸 WHAT TO TELL ME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Option 1**: Describe what you see
+- "Deployment status is: [Success/Failed/Building]"
+- "I see [1/2] services in my project"
+- "Root directory is set to: [value]"
+- "Latest deployment logs show: [error message]"
+
+**Option 2**: Send me the deployment logs
+- Copy the last 20-30 lines from the Logs tab
+- Paste them here
+
+**Option 3**: Tell me the exact error
+- What color is the deployment? (green/red/yellow)
+- Any red error messages in logs?
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 EXPECTED RESULT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When everything works, you should see:
+- ✅ Deployment status: Success (green)
+- ✅ Two services: backend + postgres
+- ✅ Logs showing: "Server running on port 3000"
+- ✅ Testing URL returns: {"status":"ok","message":"Bitcurrent API is running"}
+
+Once you fix the issue and tell me, I'll:
+1. Test the backend endpoint
+2. Run database migrations
+3. Connect frontend to backend
+4. Test full stack end-to-end! 🚀
+
