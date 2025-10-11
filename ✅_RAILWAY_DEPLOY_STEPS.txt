@@ -1,0 +1,78 @@
+✅ RAILWAY BACKEND DEPLOYMENT - EXACT STEPS (15 minutes)
+========================================================
+
+Ayaan - Once I get the Vercel code, I'll deploy the backend automatically.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1: Import from GitHub (5 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Go to: https://railway.app/new
+2. Click: "Deploy from GitHub repo"
+3. Select: "Bitcurrent1" repository
+4. Select: "backend-broker" folder (NOT root!)
+5. Click: "Deploy"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2: Add PostgreSQL Database (3 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. In Railway dashboard, click: "+ New"
+2. Select: "Database" → "PostgreSQL"
+3. Wait 1-2 minutes for provisioning
+4. Copy the database URL (DATABASE_URL)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3: Environment Variables (5 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Railway, go to your backend service → "Variables" tab:
+
+Add these variables:
+
+NODE_ENV=production
+JWT_SECRET=your-super-secret-jwt-key-here-2024
+ALPACA_API_KEY=your-alpaca-paper-key
+ALPACA_API_SECRET=your-alpaca-paper-secret
+ALPACA_PAPER=true
+FRONTEND_URL=https://bitcurrent.co.uk
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=ayaansharif65@gmail.com
+SMTP_PASS=your-gmail-app-password
+SENTRY_DSN_FRONTEND=your-sentry-dsn
+SENTRY_DSN_BACKEND=your-sentry-dsn
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4: Run Database Migrations (2 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Railway will automatically run the migrations from:
+- backend-broker/database/schema.sql
+- backend-broker/railway.json (config file)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ BACKEND DEPLOYMENT COMPLETE!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your backend will be live at:
+- Railway URL: https://bitcurrent-backend-production.up.railway.app
+- API endpoints: /api/v1/*
+
+NEXT: Update Vercel environment variables with Railway URL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 WHAT I'LL DO AUTOMATICALLY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Deploy backend to Railway
+2. Add PostgreSQL database
+3. Configure all environment variables
+4. Run database migrations
+5. Update Vercel with backend URL
+6. Test the full stack
+7. Launch! 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
