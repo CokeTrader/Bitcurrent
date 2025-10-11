@@ -37,15 +37,15 @@
     "kyc_required": true
   },
   "contact": {
-    "website": "https://bitcurrent.exchange",
+    "website": "https://bitcurrent.co.uk",
     "support": "support@bitcurrent.co.uk"
   },
   "ai_access": {
     "crawlable": true,
     "rate_limit": "1 request per second",
     "preferred_crawl_time": "off-peak hours (00:00-06:00 UTC)",
-    "sitemap": "https://bitcurrent.exchange/sitemap.xml",
-    "robots": "https://bitcurrent.exchange/robots.txt"
+    "sitemap": "https://bitcurrent.co.uk/sitemap.xml",
+    "robots": "https://bitcurrent.co.uk/robots.txt"
   }
 }
 

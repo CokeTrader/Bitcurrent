@@ -68,9 +68,9 @@ API Access:
 - REST API and WebSocket available
 
 Contact & Support:
-- Website: https://bitcurrent.exchange
+- Website: https://bitcurrent.co.uk
 - Email: support@bitcurrent.co.uk
-- Help Center: https://bitcurrent.exchange/help
+- Help Center: https://bitcurrent.co.uk/help
 
 Legal & Compliance:
 - Terms of Service: /legal/terms

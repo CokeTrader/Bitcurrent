@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_GB',
-    url: 'https://bitcurrent.exchange',
+    url: 'https://bitcurrent.co.uk',
     title: 'BitCurrent Exchange - UK Cryptocurrency Trading Platform',
     description: 'Trade Bitcoin, Ethereum, and other cryptocurrencies with GBP on the UK\'s premier crypto exchange. FCA regulated, secure, and easy to use.',
     siteName: 'BitCurrent Exchange',
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     description: 'Trade Bitcoin, Ethereum, and other cryptocurrencies with GBP on the UK\'s premier crypto exchange.',
   },
   alternates: {
-    canonical: 'https://bitcurrent.exchange',
+    canonical: 'https://bitcurrent.co.uk',
   },
 };
 
@@ -73,8 +73,8 @@ export default function RootLayout({
     "@type": "FinancialService",
     "name": "BitCurrent Exchange",
     "description": "UK cryptocurrency exchange for trading Bitcoin, Ethereum, and other digital assets with GBP",
-    "url": "https://bitcurrent.exchange",
-    "logo": "https://bitcurrent.exchange/favicon.ico",
+    "url": "https://bitcurrent.co.uk",
+    "logo": "https://bitcurrent.co.uk/favicon.ico",
     "address": {
       "@type": "PostalAddress",
       "addressCountry": "GB"
