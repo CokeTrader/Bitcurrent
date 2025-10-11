@@ -2,7 +2,7 @@
 const express = require('express');
 const { query, transaction } = require('../config/database');
 const { verifyToken } = require('../middleware/auth');
-const binance = require('../services/binance');
+const alpaca = require('../services/alpaca'); // Using Alpaca instead of Binance
 const ledger = require('../services/ledger');
 const { v4: uuidv4 } = require('uuid');
 
@@ -42,8 +42,8 @@ router.get('/quote', async (req, res) => {
       });
     }
     
-    // Get quote from Binance
-    const quote = await binance.getQuote(symbol, side.toUpperCase(), amountNum);
+    // Get quote from Alpaca
+    const quote = await alpaca.getQuote(symbol, side.toUpperCase(), amountNum);
     
     res.json({
       success: true,
@@ -99,9 +99,9 @@ router.post('/', async (req, res) => {
       });
     }
     
-    // Get quote
-    const quote = await binance.getQuote(
-      baseCurrency + quoteCurrency, // Binance format: BTCGBP
+    // Get quote from Alpaca
+    const quote = await alpaca.getQuote(
+      symbol, // Use our format: BTC-GBP
       side.toUpperCase(),
       amountNum
     );
@@ -131,12 +131,11 @@ router.post('/', async (req, res) => {
       // Reserve funds
       await ledger.reserve(userId, deductCurrency, deductAmount, 'ORDER', orderId);
       
-      // Place order on Binance
-      const binanceOrder = await binance.placeMarketOrder(
-        baseCurrency + quoteCurrency,
+      // Place order on Alpaca
+      const alpacaOrder = await alpaca.placeMarketOrder(
+        symbol, // Use our format: BTC-GBP
         side.toUpperCase(),
-        side.toUpperCase() === 'BUY' ? quote.quoteAmount : null,
-        side.toUpperCase() === 'SELL' ? quote.baseAmount : null
+        quote.baseAmount // Quantity in crypto
       );
       
       // Order filled successfully
@@ -147,7 +146,7 @@ router.post('/', async (req, res) => {
            SET status = $1, provider_order_id = $2, filled_amount = $3, 
                average_price = $4, filled_at = NOW()
            WHERE id = $5`,
-          ['FILLED', binanceOrder.orderId, binanceOrder.executedQty, binanceOrder.avgPrice, orderId]
+          ['FILLED', alpacaOrder.orderId, alpacaOrder.filledQty, alpacaOrder.filledAvgPrice, orderId]
         );
         
         // Deduct spent currency (from reserved)
@@ -172,7 +171,7 @@ router.post('/', async (req, res) => {
         
         // Credit received currency
         const receiveCurrency = side.toUpperCase() === 'BUY' ? baseCurrency : quoteCurrency;
-        const receiveAmount = side.toUpperCase() === 'BUY' ? binanceOrder.executedQty : binanceOrder.cummulativeQuoteQty;
+        const receiveAmount = side.toUpperCase() === 'BUY' ? alpacaOrder.filledQty : (alpacaOrder.filledQty * alpacaOrder.filledAvgPrice);
         
         await ledger.credit(userId, receiveCurrency, receiveAmount, 'TRADE', 'ORDER', orderId, `${side} ${symbol}`);
       });
@@ -185,9 +184,9 @@ router.post('/', async (req, res) => {
           symbol,
           side: side.toUpperCase(),
           amount: quote.baseAmount,
-          filledAmount: binanceOrder.executedQty,
-          averagePrice: binanceOrder.avgPrice,
-          total: binanceOrder.cummulativeQuoteQty,
+          filledAmount: alpacaOrder.filledQty,
+          averagePrice: alpacaOrder.filledAvgPrice,
+          total: alpacaOrder.filledQty * alpacaOrder.filledAvgPrice,
           status: 'FILLED',
           timestamp: new Date()
         }

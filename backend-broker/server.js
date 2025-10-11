@@ -15,7 +15,7 @@ const adminRoutes = require('./routes/admin');
 
 // Import services
 const { pool } = require('./config/database');
-const binance = require('./services/binance');
+const alpaca = require('./services/alpaca'); // Using Alpaca for crypto trading
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -113,12 +113,10 @@ async function startServer() {
     await pool.query('SELECT NOW()');
     console.log('✅ Database connected');
     
-    // Test Binance connection
-    const binanceConnected = await binance.testConnection();
-    if (binanceConnected) {
-      console.log('✅ Binance API connected');
-    } else {
-      console.warn('⚠️  Binance API connection failed (testnet mode?)');
+    // Test Alpaca connection
+    const alpacaConnected = await alpaca.testConnection();
+    if (!alpacaConnected) {
+      console.warn('⚠️  Alpaca API connection failed - check your API keys');
     }
     
     // Start listening
