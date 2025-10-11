@@ -1,0 +1,113 @@
+✅ VERCEL DEPLOYMENT - EXACT STEPS (10 minutes)
+================================================
+
+Ayaan - Follow these EXACT steps. I'll monitor and help if you get stuck.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1: Import from GitHub (3 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. You're logged into Vercel ✅
+2. Go to: https://vercel.com/new
+3. Click: "Continue with GitHub" button
+4. If prompted: Click "Authorize Vercel" 
+5. Search for: "Bitcurrent" or "Bitcurrent1"
+6. Click: "Import" next to your Bitcurrent1 repository
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2: Configure Project (2 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vercel will show "Configure Project" screen:
+
+1. Project Name: bitcurrent-frontend (or keep default)
+
+2. Framework Preset: Next.js (should auto-detect ✅)
+
+3. Root Directory: Click "Edit" → Type: frontend
+   ⚠️ IMPORTANT: Must be "frontend" not root!
+
+4. Build Command: npm run build (default ✅)
+
+5. Output Directory: .next (default ✅)
+
+6. Install Command: npm install (default ✅)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3: Environment Variables (2 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Click: "Environment Variables" (expand section)
+
+Add these 3 variables:
+
+Name: NEXT_PUBLIC_API_URL
+Value: https://bitcurrent-backend-production.up.railway.app
+(We'll update this after Railway deployment)
+
+Name: NEXT_PUBLIC_WS_URL  
+Value: wss://bitcurrent-backend-production.up.railway.app
+(Same - update after Railway)
+
+Name: NODE_ENV
+Value: production
+
+Click: "Add" for each one
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4: Deploy! (3 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Click: "Deploy" button (big blue button)
+
+2. Wait for build (2-3 minutes)
+   You'll see:
+   - Installing dependencies...
+   - Building...
+   - Deploying...
+
+3. Success screen appears! 🎉
+   You'll see: "Congratulations! Your project is live"
+   
+4. Click: "Continue to Dashboard"
+
+5. You'll see your deployment URL:
+   Something like: bitcurrent-frontend-xyz123.vercel.app
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5: Add Custom Domain (2 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Vercel dashboard:
+
+1. Click your project: "bitcurrent-frontend"
+2. Click: "Settings" tab (top)
+3. Click: "Domains" (left sidebar)
+4. Type: bitcurrent.co.uk
+5. Click: "Add"
+6. Vercel will show DNS instructions:
+
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Type: A
+   Name: @
+   Value: 76.76.21.21 (or whatever IP Vercel shows)
+   
+   Type: CNAME
+   Name: www
+   Value: cname.vercel-dns.com
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+7. **COPY THESE VALUES** - you'll need them for Hostinger
+
+8. Click: "Refresh" after you update DNS (later)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ VERCEL DEPLOYMENT COMPLETE!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your frontend is now live at:
+- Vercel URL: https://bitcurrent-frontend-xyz123.vercel.app
+- Will be live at bitcurrent.co.uk after DNS update
+
+NEXT: Deploy backend to Railway (see next file)
+

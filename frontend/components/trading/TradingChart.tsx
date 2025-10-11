@@ -86,6 +86,9 @@ export function TradingChart({ symbol, data = [], className }: TradingChartProps
     }
   }, [data])
 
+  const [showIndicators, setShowIndicators] = React.useState(false)
+  const [selectedIndicators, setSelectedIndicators] = React.useState<string[]>([])
+
   const timeframes = [
     { label: '1m', value: '1m' },
     { label: '5m', value: '5m' },
@@ -93,7 +96,26 @@ export function TradingChart({ symbol, data = [], className }: TradingChartProps
     { label: '1h', value: '1h' },
     { label: '4h', value: '4h' },
     { label: '1d', value: '1d' },
+    { label: '1w', value: '1w' },
+    { label: '1M', value: '1M' },
   ]
+  
+  const indicators = [
+    { label: 'Volume', value: 'volume' },
+    { label: 'RSI', value: 'rsi' },
+    { label: 'MACD', value: 'macd' },
+    { label: 'Bollinger Bands', value: 'bb' },
+    { label: 'SMA 20', value: 'sma20' },
+    { label: 'EMA 50', value: 'ema50' },
+  ]
+  
+  const toggleIndicator = (value: string) => {
+    setSelectedIndicators(prev => 
+      prev.includes(value) 
+        ? prev.filter(i => i !== value)
+        : [...prev, value]
+    )
+  }
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -134,8 +156,49 @@ export function TradingChart({ symbol, data = [], className }: TradingChartProps
           >
             Line
           </Button>
+          <Button
+            variant={showIndicators ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowIndicators(!showIndicators)}
+            className="h-8 px-3"
+          >
+            Indicators ({selectedIndicators.length})
+          </Button>
         </div>
       </div>
+      
+      {/* Indicators Menu */}
+      {showIndicators && (
+        <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold">Technical Indicators</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIndicators([])}
+              className="h-7 text-xs"
+            >
+              Clear All
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {indicators.map((ind) => (
+              <Button
+                key={ind.value}
+                variant={selectedIndicators.includes(ind.value) ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleIndicator(ind.value)}
+                className="h-8 text-xs"
+              >
+                {ind.label}
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Select indicators to overlay on the chart. Click again to remove.
+          </p>
+        </div>
+      )}
 
       {/* Chart Container */}
       <div 
