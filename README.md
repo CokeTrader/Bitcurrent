@@ -1,361 +1,369 @@
-# 🚀 BitCurrent Exchange - Production-Ready Platform
+# BitCurrent Exchange
 
-**The UK's Premier Cryptocurrency Exchange**  
-**Status**: 100% Complete ✅ Ready for Beta Launch  
-**Built**: October 10-11, 2025
+> **A modern cryptocurrency exchange platform built for the UK market**
 
----
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org)
 
-## 🎯 What Is BitCurrent?
-
-A **world-class cryptocurrency exchange** built to compete with Coinbase and Kraken, featuring:
-
-- ✅ **Premium Design** - Unique Sora fonts, glassmorphism effects, 60fps animations
-- ✅ **Real-Time Trading** - WebSocket prices (<50ms), TradingView charts, professional interface
-- ✅ **Web3 Integration** - MetaMask, WalletConnect, 5+ blockchain networks
-- ✅ **DeFi Staking** - 4 pools, up to 7.8% APY, yield tracking, auto-compound
-- ✅ **Smart Navigation** - Contextual UI that adapts to logged in/out state
-- ✅ **Production Ready** - Tested, documented, optimized
+**Live Site**: [https://bitcurrent.co.uk](https://bitcurrent.co.uk)
 
 ---
 
 ## 🚀 Quick Start
 
-### Run Locally:
+**Want to launch your own exchange in 2 weeks?**
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
-### Test Credentials:
-- Email: `demo@bitcurrent.co.uk`
-- Password: `Demo123!`
+👉 **Start here**: [START_HERE.md](👉_START_HERE.md)
 
 ---
 
-## ✨ Key Features
+## 📊 Overview
 
-### 🔐 Authentication
-- Premium glassmorphism design
-- 3-step registration with progress bar
-- Real-time password strength meter
-- Complete password reset flow
-- Biometric login (Face ID/Touch ID)
-- 2FA ready
+BitCurrent is a **broker model** cryptocurrency exchange that uses external liquidity providers (Binance) to offer trading without the complexity of a matching engine.
 
-### 📈 Trading
-- Real-time WebSocket prices (Binance)
-- Professional TradingView-style charts
-- 3-column layout (OrderBook, Chart, Form)
-- Multiple timeframes (1m to 1d)
-- Price flash animations
-- 100+ cryptocurrencies
+### Key Features
 
-### 🌐 Web3
-- MetaMask integration
-- WalletConnect support
-- Multi-chain (Ethereum, Polygon, Optimism, Arbitrum, Base)
-- Real wallet balances
-- Chain switching
-- Transaction history
+- ✅ **Trading**: Market orders for BTC, ETH, and more pairs
+- ✅ **Multi-Currency**: GBP, BTC, ETH balance tracking
+- ✅ **Admin Panel**: Manual approval for deposits/withdrawals
+- ✅ **SEO Optimized**: Blog, FAQ, and content pages
+- ✅ **Mobile Ready**: Responsive PWA design
+- ✅ **Secure**: JWT auth, bcrypt, rate limiting
 
-### 💎 Staking & DeFi
-- 4 staking pools (ETH, SOL, ADA, MATIC)
-- APY up to 7.8%
-- Projected earnings calculator
-- Yield tracking dashboard
-- One-click rewards claiming
-- Auto-compound option
+### Architecture
 
-### 🎨 Design
-- Unique fonts: Sora, Space Grotesk, JetBrains Mono
-- BitCurrent Blue (#0052FF) brand color
-- Deep Space Blue dark mode (#0A0E27)
-- Glassmorphism effects
-- Framer Motion animations (60fps)
-- Mobile-first responsive design
+**Backend**: Node.js monolith with Binance API integration
+**Frontend**: Next.js 14 with React 18
+**Database**: PostgreSQL
+**Hosting**: Railway (£15/month) + Vercel (free)
 
 ---
 
-## 📊 Technical Stack
+## 💰 Cost Breakdown
 
-**Frontend**:
-- Next.js 14 (App Router, SSR)
-- React 18 (Server Components)
-- TypeScript 100%
-- Tailwind CSS v4
-
-**UI & Animation**:
-- Framer Motion
-- Radix UI
-- shadcn/ui
-- Lucide icons
-
-**Web3**:
-- wagmi v2
-- viem v2
-- RainbowKit
-- Multiple chain support
-
-**Trading**:
-- lightweight-charts (TradingView-style)
-- WebSocket (Binance)
-- CoinGecko API
-
-**Forms & Validation**:
-- React Hook Form
-- Zod schemas
-- Real-time validation
-
-**Testing**:
-- Playwright (E2E)
-- 15 test scenarios
-- Multi-browser, multi-device
+| Item | Cost | Details |
+|------|------|---------|
+| **Backend + Database** | £15/month | Railway.app |
+| **Frontend** | £0/month | Vercel (free tier) |
+| **Liquidity** | £0 upfront | Binance revenue-share |
+| **Total** | **£15/month** | 90% cheaper than matching engine |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-frontend/
-├── app/                    # Next.js 14 App Router
-│   ├── page.tsx           # Homepage (animated)
-│   ├── auth/              # Auth pages (login, register, reset)
-│   ├── dashboard/         # Portfolio dashboard
-│   ├── markets/           # Markets overview
-│   ├── trade/             # Trading interface
-│   ├── staking/           # Staking pools
-│   ├── web3/              # Web3 wallet page
-│   ├── wallets/           # Wallet management
-│   └── settings/          # User settings
+Bitcurrent1/
+├── backend-broker/              # Node.js broker model backend
+│   ├── config/                  # Database configuration
+│   ├── routes/                  # API endpoints
+│   ├── services/                # Binance, Ledger services
+│   ├── middleware/              # Auth, rate limiting
+│   ├── database/                # PostgreSQL schema
+│   └── server.js                # Main entry point
 │
-├── components/
-│   ├── auth/              # Auth layout, forms
-│   ├── dashboard/         # Portfolio components
-│   ├── layout/            # Header, footer
-│   ├── staking/           # Staking components, yield tracking
-│   ├── trading/           # OrderBook, Chart, TradeForm
-│   ├── web3/              # WalletConnect
-│   ├── ui/                # Base UI components (40+)
-│   ├── error-boundary.tsx # Error handling
-│   └── loading/           # Loading states
+├── frontend/                    # Next.js frontend
+│   ├── app/                     # Pages (App Router)
+│   ├── components/              # React components
+│   ├── lib/                     # Utils, API client
+│   └── public/                  # Static assets
 │
-├── hooks/                 # Custom hooks
-│   ├── use-market-data.ts # CoinGecko API
-│   ├── use-websocket-price.ts # Real-time prices
-│   └── use-coin-price.ts  # Individual coins
+├── services/                    # [OLD] Go microservices (not used)
+├── infrastructure/              # [OLD] K8s configs (not used)
 │
-├── lib/
-│   ├── web3/              # Web3 config, contracts
-│   ├── utils/             # Utilities, validation
-│   ├── api/               # API client
-│   └── analytics.ts       # Event tracking
-│
-└── tests/e2e/             # Playwright tests
-    ├── auth.spec.ts       # Auth flow tests
-    ├── trading.spec.ts    # Trading tests
-    └── navigation.spec.ts # Navigation tests
+└── docs/                        # Documentation
+    ├── 👉_START_HERE.md         # Your action plan
+    ├── 🎯_QUICK_START_GUIDE.md  # 2-hour launch guide
+    ├── 🚀_RAILWAY_DEPLOYMENT_GUIDE.md
+    ├── ✅_LAUNCH_CHECKLIST.md
+    └── 📋_REALISTIC_BROKER_MODEL_PLAN.md
 ```
 
 ---
 
-## 🧪 Testing
+## 🎯 Getting Started
 
-### Run E2E Tests:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL 15+
+- Railway.app account (for deployment)
+- Binance account (for liquidity)
+
+### Local Development
 
 ```bash
-npm run test        # Run all tests
-npm run test:ui     # Interactive UI mode
-npm run test:headed # See browser
-npm run test:debug  # Debug mode
+# Backend
+cd backend-broker
+npm install
+cp .env.example .env
+# Edit .env with your settings
+npm run dev
+
+# Frontend
+cd frontend
+npm install
+npm run dev
 ```
 
-### Test Coverage:
-- ✅ Authentication flow (6 tests)
-- ✅ Trading features (5 tests)
-- ✅ Navigation (4 tests)
-- ✅ Multi-browser (Chrome, Firefox, Safari)
-- ✅ Multi-device (Desktop, mobile)
-
 ---
 
-## 🔒 Security
+## 🚢 Deployment
 
-### Implemented:
-- ✅ HTTPS only
-- ✅ Security headers (HSTS, CSP, X-Frame-Options)
-- ✅ Input validation (Zod schemas)
-- ✅ XSS protection
-- ✅ CSRF protection
-- ✅ Password strength validation
-- ✅ Middleware auth protection
-- ✅ 2FA ready
+### Option 1: Quick Deploy (Railway + Vercel)
 
-### Smart Contract Security:
-- ✅ Audited ABIs
-- ✅ Transaction validation
-- ✅ Gas estimation
-- ✅ User confirmation required
+1. **Deploy Backend** (30 mins)
+   ```bash
+   # Sign up: https://railway.app
+   # Connect GitHub repo
+   # Deploy backend-broker folder
+   # Add PostgreSQL database
+   # Configure environment variables
+   ```
 
----
+2. **Deploy Frontend** (15 mins)
+   ```bash
+   # Sign up: https://vercel.com
+   # Connect GitHub repo
+   # Deploy frontend folder
+   # Add environment variable: NEXT_PUBLIC_API_URL
+   ```
 
-## 📱 Mobile & PWA
+3. **Follow the guides**:
+   - [Quick Start Guide](🎯_QUICK_START_GUIDE.md) - Fastest path
+   - [Railway Deployment](🚀_RAILWAY_DEPLOYMENT_GUIDE.md) - Detailed steps
 
-### Progressive Web App:
-- ✅ Installable on iOS/Android
-- ✅ Fullscreen experience
-- ✅ App shortcuts
-- ✅ Theme colors
-- ✅ Offline ready
+### Option 2: Manual Docker Deploy
 
-### Responsive Design:
-- ✅ Mobile-first approach
-- ✅ Touch-optimized
-- ✅ Hamburger menu (mobile only!)
-- ✅ Works on all screen sizes
+```bash
+# Build backend
+cd backend-broker
+docker build -t bitcurrent-backend .
+docker run -p 8080:8080 bitcurrent-backend
+
+# Build frontend
+cd frontend
+docker build -t bitcurrent-frontend .
+docker run -p 3000:3000 bitcurrent-frontend
+```
 
 ---
 
 ## 📚 Documentation
 
-- ✅ **USER_GUIDE.md** - Complete user documentation
-- ✅ **BITCURRENT_COMPLETE_GUIDE.md** - Full feature list
-- ✅ **PHASE_*_COMPLETE.md** - Phase summaries
-- ✅ **NAVIGATION_FIX_CRITICAL.md** - UX improvements
-- ✅ **NEXT_STEPS.md** - Launch preparation
-- ✅ This **README.md** - Project overview
+### Essential Guides
+
+| Document | Description | Time |
+|----------|-------------|------|
+| [👉 START HERE](👉_START_HERE.md) | Your action plan | 5 mins |
+| [🎯 Quick Start](🎯_QUICK_START_GUIDE.md) | Launch in 2 weeks | 2 hours |
+| [🚀 Railway Deploy](🚀_RAILWAY_DEPLOYMENT_GUIDE.md) | Step-by-step deployment | 4 hours |
+| [✅ Launch Checklist](✅_LAUNCH_CHECKLIST.md) | Complete task list | Reference |
+| [📋 Business Plan](📋_REALISTIC_BROKER_MODEL_PLAN.md) | Full strategy | 30 mins |
+
+### Technical Docs
+
+- [Backend README](backend-broker/README.md) - API documentation
+- [Infrastructure Audit](🔍_INFRASTRUCTURE_AUDIT.md) - Cost analysis
+- [Broker Model Architecture](docs/BROKER_MODEL_ARCHITECTURE.md) - System design
 
 ---
 
-## 🎯 What Makes BitCurrent Special
+## 🔧 API Endpoints
 
-### 1. Smart Contextual Navigation ⭐
-- Shows different navigation based on auth state
-- Logged out: Markets, Trade, Sign In, Get Started
-- Logged in: Full menu with Portfolio, Earn, Web3
+### Authentication
+- `POST /api/v1/auth/register` - Register user
+- `POST /api/v1/auth/login` - Login
+- `GET /api/v1/auth/me` - Get current user
 
-### 2. Premium Glassmorphism Design ⭐
-- Frosted glass effects
-- Animated gradient backgrounds
-- Unique Sora + Space Grotesk fonts
-- 60fps animations
+### Trading
+- `GET /api/v1/orders/quote` - Get price quote
+- `POST /api/v1/orders` - Place market order
+- `GET /api/v1/orders` - Order history
 
-### 3. Real-Time Everything ⭐
-- WebSocket prices (<50ms latency)
-- Live price flash animations
-- Real-time wallet balances
-- Live yield tracking
+### Balances
+- `GET /api/v1/balances` - Get all balances
+- `GET /api/v1/balances/:currency` - Get specific balance
 
-### 4. Web3 + CEX Hybrid ⭐
-- Traditional exchange (easy for beginners)
-- Web3 wallet connection (control your keys)
-- Best of both worlds
+### Deposits/Withdrawals
+- `POST /api/v1/deposits` - Create deposit request
+- `POST /api/v1/withdrawals` - Create withdrawal request
+- `GET /api/v1/deposits` - Deposit history
+- `GET /api/v1/withdrawals` - Withdrawal history
 
-### 5. Beautiful Staking Experience ⭐
-- Visual APY displays
-- Projected earnings calculator
-- Yield performance charts
-- One-click rewards claiming
+### Admin (requires admin auth)
+- `GET /api/v1/admin/deposits/pending` - Pending deposits
+- `POST /api/v1/admin/deposits/:id/approve` - Approve deposit
+- `GET /api/v1/admin/withdrawals/pending` - Pending withdrawals
+- `POST /api/v1/admin/withdrawals/:id/approve` - Approve withdrawal
 
 ---
 
-## 🏆 Success Metrics
+## 🎨 Tech Stack
 
-### Performance:
-- ✅ Bundle: 86.8 KB (excellent!)
-- ✅ First Load: <100 KB
-- ✅ Lighthouse: 95+
-- ✅ Animations: 60fps
+### Backend
+- **Runtime**: Node.js 18
+- **Framework**: Express.js
+- **Database**: PostgreSQL 15
+- **Auth**: JWT + bcrypt
+- **API**: Binance REST API
 
-### Code Quality:
-- ✅ TypeScript: 100%
-- ✅ Build errors: 0
-- ✅ Tests: 15 E2E
-- ✅ Components: 40+
-- ✅ Pages: 16
+### Frontend
+- **Framework**: Next.js 14
+- **UI**: React 18 + TailwindCSS
+- **State**: Zustand
+- **Web3**: wagmi + RainbowKit
+- **Forms**: React Hook Form + Zod
 
-### User Experience:
-- ✅ Smart navigation
-- ✅ Error handling
-- ✅ Loading states
-- ✅ Mobile responsive
-- ✅ Accessible (WCAG AA)
-
----
-
-## 📞 Support & Resources
-
-### Documentation:
-- [User Guide](./USER_GUIDE.md)
-- [Complete Features](./BITCURRENT_COMPLETE_GUIDE.md)
-- [Next Steps](./NEXT_STEPS.md)
-
-### Need Help?
-- Email: support@bitcurrent.co.uk
-- Twitter: @BitCurrentUK
-- Help Center: help.bitcurrent.co.uk
+### Infrastructure
+- **Backend Hosting**: Railway.app
+- **Frontend Hosting**: Vercel
+- **Database**: Railway PostgreSQL
+- **SSL**: Automatic (Railway + Vercel)
 
 ---
 
-## 🎉 Status
+## 📈 Roadmap
 
-**Development**: ✅ **100% COMPLETE**  
-**Testing**: ✅ E2E suite ready  
-**Documentation**: ✅ Complete  
-**Design**: ✅ World-class  
-**Performance**: ✅ Optimized  
-**Security**: ✅ Hardened  
+### ✅ Phase 1: MVP (Complete)
+- [x] User authentication
+- [x] Market orders via Binance
+- [x] Manual deposit/withdrawal approval
+- [x] Admin panel
+- [x] SEO optimization
 
-**Next**: Beta Launch 🎯  
-**Timeline**: 1 week  
-**Date**: November 15, 2025
+### 🚧 Phase 2: Automation (Month 2-3)
+- [ ] Automated KYC (Sumsub integration)
+- [ ] Card deposits (Transak integration)
+- [ ] Automated withdrawals
+- [ ] Email notifications
+
+### 📋 Phase 3: Features (Month 3-6)
+- [ ] Limit orders
+- [ ] More trading pairs (10+ pairs)
+- [ ] Price alerts
+- [ ] Advanced charts
+- [ ] Mobile app
+
+### 🎯 Phase 4: Scale (Month 6-12)
+- [ ] FCA license approval
+- [ ] Institutional features
+- [ ] API for third-party developers
+- [ ] Staking (live implementation)
 
 ---
 
-## 🚀 Deploy
+## 💡 Why Broker Model?
 
-### Environment Variables:
-```env
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
-NEXT_PUBLIC_COINGECKO_API_KEY=CG-zYnaYNPafFEBwVto94yj17Ey
-NODE_ENV=production
-```
+Traditional exchanges need:
+- ❌ Matching engine (complex)
+- ❌ Deep liquidity (£100k+)
+- ❌ Market makers (expensive)
+- ❌ Complex infrastructure (£200+/month)
 
-### Production Build:
+Broker model needs:
+- ✅ Simple API integration (Binance)
+- ✅ Zero upfront liquidity
+- ✅ Revenue-share model
+- ✅ Cheap infrastructure (£15/month)
+
+**Result**: Launch with £1,000 instead of £100,000
+
+---
+
+## 📊 Revenue Model
+
+- **Trading Fee**: 0.1% per trade
+- **Example**: £100,000 volume = £100 revenue
+- **Break-even**: ~£50,000/month volume (Month 3-4)
+- **Target**: £1,000,000/month volume = £1,000 revenue
+
+### Realistic Projections
+
+| Month | Users | Volume | Revenue | Costs | Profit |
+|-------|-------|--------|---------|-------|--------|
+| 1 | 50 | £50k | £50 | £16 | +£34 |
+| 3 | 200 | £200k | £200 | £16 | +£184 |
+| 6 | 1,000 | £1M | £1,000 | £16 | +£984 |
+| 12 | 5,000 | £5M | £5,000 | £16 | +£4,984 |
+
+---
+
+## 🔒 Security
+
+- ✅ JWT authentication with refresh tokens
+- ✅ bcrypt password hashing (10 rounds)
+- ✅ Rate limiting (100 req/15min)
+- ✅ CORS protection
+- ✅ Helmet security headers
+- ✅ SQL injection prevention (parameterized queries)
+- ✅ XSS protection
+- ✅ HTTPS enforced
+- ✅ Immutable transaction ledger
+
+---
+
+## 🧪 Testing
+
 ```bash
-npm run build
-npm run start
+# Backend tests
+cd backend-broker
+npm test
+
+# Frontend tests
+cd frontend
+npm test
+
+# E2E tests
+cd frontend
+npm run test:e2e
 ```
 
 ---
 
-## 💝 Acknowledgments
+## 🤝 Contributing
 
-Built with critical thinking, attention to detail, and user feedback.
+This is a personal/commercial project. If you want to build your own exchange using this code:
 
-**Every piece of feedback made this better:**
-- Generic font → Unique (Sora)
-- Fake data → Real (£84,092 BTC)
-- Confusing nav → Smart (contextual)
-- Missing buttons → Fixed (Sign In/Get Started)
-
-**Result**: A world-class platform ready for users.
+1. **Fork the repository**
+2. **Follow the guides** in the docs/ folder
+3. **Deploy your own instance**
+4. **Don't steal the BitCurrent branding** 😊
 
 ---
 
-## 🎊 **CONGRATULATIONS!**
+## 📄 License
 
-**You now have a complete, production-ready cryptocurrency exchange!**
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Open http://localhost:3000 and see your amazing platform!** 🚀✨
+**Note**: While the code is MIT licensed, the "BitCurrent" brand and logo are not included.
 
 ---
 
-*Built by AI + Human collaboration*  
-*October 10-11, 2025*  
-*From 30% to 100% in 8 hours*  
-*Quality: ⭐⭐⭐⭐⭐*
+## 🙏 Acknowledgments
+
+- **Binance** for providing liquidity via broker program
+- **Railway.app** for affordable hosting
+- **Vercel** for free frontend hosting
+- **Next.js** team for an amazing framework
+
+---
+
+## 📞 Contact
+
+- **Website**: [bitcurrent.co.uk](https://bitcurrent.co.uk)
+- **Email**: support@bitcurrent.co.uk
+- **GitHub**: [github.com/CokeTrader/Bitcurrent](https://github.com/CokeTrader/Bitcurrent)
+
+---
+
+## ⭐ Star This Repo
+
+If you found this helpful, please star the repo! It helps others discover this project.
+
+---
+
+**Built with ❤️ in London, UK**
+
+*Launch your crypto exchange in 2 weeks with £1,000 budget* 🚀
