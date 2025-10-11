@@ -24,7 +24,7 @@ type OrderType = 'market' | 'limit' | 'stop-loss'
 export function OrderForm({
   symbol,
   currentPrice = 43250.50,
-  balance = { base: 0.5, quote: 5000 },
+  balance = { base: 0.00, quote: 0.00 }, // NEW accounts have £0.00
   onOrderPlaced
 }: OrderFormProps) {
   const [side, setSide] = React.useState<OrderSide>('buy')
@@ -113,7 +113,11 @@ export function OrderForm({
             variant={side === 'buy' ? "buy" : "outline"}
             size="lg"
             onClick={() => setSide('buy')}
-            className={cn("font-semibold", side === 'buy' && "shadow-lg")}
+            className={cn(
+              "font-semibold transition-colors",
+              side === 'buy' && "shadow-lg",
+              side !== 'buy' && "hover:bg-success/10 hover:text-success hover:border-success"
+            )}
           >
             Buy {baseAsset}
           </Button>
@@ -122,7 +126,11 @@ export function OrderForm({
             variant={side === 'sell' ? "sell" : "outline"}
             size="lg"
             onClick={() => setSide('sell')}
-            className={cn("font-semibold", side === 'sell' && "shadow-lg")}
+            className={cn(
+              "font-semibold transition-colors",
+              side === 'sell' && "shadow-lg",
+              side !== 'sell' && "hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+            )}
           >
             Sell {baseAsset}
           </Button>

@@ -81,9 +81,12 @@ func main() {
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(db, jwtManager, log)
+	passwordResetHandler := handlers.NewPasswordResetHandler(db, log)
+	userHandler := handlers.NewUserHandler(db, log)
 	orderHandler := handlers.NewOrderHandler(db, log)
 	accountHandler := handlers.NewAccountHandler(db, log)
 	marketHandler := handlers.NewMarketHandler(db, redisCache, log)
+	taxHandler := handlers.NewTaxHandler(db, log)
 
 	// Setup router
 	router := mux.NewRouter()
@@ -107,6 +110,9 @@ func main() {
 	api.HandleFunc("/auth/login", authHandler.Login).Methods("POST")
 	api.HandleFunc("/auth/register", authHandler.Register).Methods("POST")
 	api.HandleFunc("/auth/refresh", authHandler.RefreshToken).Methods("POST")
+	api.HandleFunc("/auth/forgot-password", passwordResetHandler.RequestPasswordReset).Methods("POST")
+	api.HandleFunc("/auth/reset-password", passwordResetHandler.ResetPassword).Methods("POST")
+	api.HandleFunc("/auth/verify-email", passwordResetHandler.VerifyEmail).Methods("GET")
 	api.HandleFunc("/markets", marketHandler.ListMarkets).Methods("GET")
 	api.HandleFunc("/orderbook/{symbol}", marketHandler.GetOrderbook).Methods("GET")
 	api.HandleFunc("/ticker/{symbol}", marketHandler.GetTicker).Methods("GET")
@@ -139,6 +145,22 @@ func main() {
 	// User profile
 	protected.HandleFunc("/profile", authHandler.GetProfile).Methods("GET")
 	protected.HandleFunc("/profile", authHandler.UpdateProfile).Methods("PUT")
+
+	// User preferences
+	protected.HandleFunc("/preferences", userHandler.GetPreferences).Methods("GET")
+	protected.HandleFunc("/preferences", userHandler.UpdatePreferences).Methods("PUT")
+
+	// Login history
+	protected.HandleFunc("/login-history", userHandler.GetLoginHistory).Methods("GET")
+
+	// Account deletion
+	protected.HandleFunc("/account/delete", userHandler.DeleteAccount).Methods("DELETE")
+
+	// Tax reporting
+	protected.HandleFunc("/tax/report", taxHandler.GetTaxReport).Methods("GET")
+
+	// Email verification (resend)
+	protected.HandleFunc("/verify-email/resend", passwordResetHandler.SendVerificationEmail).Methods("POST")
 
 	// WebSocket endpoint
 	router.HandleFunc("/ws", handlers.WebSocketHandler(log))

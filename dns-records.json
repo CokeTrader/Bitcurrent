@@ -1,0 +1,45 @@
+{
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "bitcurrent.co.uk.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "ac8cfd5e19ab54e7bbb69cce445bc5c8-1219156361.eu-west-2.elb.amazonaws.com"
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "www.bitcurrent.co.uk.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "ac8cfd5e19ab54e7bbb69cce445bc5c8-1219156361.eu-west-2.elb.amazonaws.com"
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "api.bitcurrent.co.uk.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "aa566433839ec4bfe8113014ed98d8b9-1852355696.eu-west-2.elb.amazonaws.com"
+          }
+        ]
+      }
+    }
+  ]
+}
+
+

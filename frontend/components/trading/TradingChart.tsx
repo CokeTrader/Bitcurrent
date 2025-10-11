@@ -17,6 +17,7 @@ interface ChartData {
 interface TradingChartProps {
   symbol: string
   data?: ChartData[]
+  interval?: string
   className?: string
 }
 

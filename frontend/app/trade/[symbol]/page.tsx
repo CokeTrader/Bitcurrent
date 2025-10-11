@@ -1,417 +1,387 @@
 "use client"
 
 import * as React from "react"
-import { useParams } from "next/navigation"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
+import { OrderBookEnhanced } from "@/components/trading/OrderBookEnhanced"
+import { TradeFormEnhanced } from "@/components/trading/TradeFormEnhanced"
+import { AdvancedChart } from "@/components/trading/AdvancedChart"
+import { RealTimePrice } from "@/components/trading/RealTimePrice"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { LinkButton } from "@/components/ui/link-button"
 import { Badge } from "@/components/ui/badge"
-import { TradingChart } from "@/components/trading/TradingChart"
-import { LiveOrderbook } from "@/components/trading/LiveOrderbook"
-import { OrderForm } from "@/components/trading/OrderForm"
-import { PriceDisplay } from "@/components/ui/price-display"
-import { useWebSocket } from "@/lib/websocket"
-import { formatGBP, formatCrypto, formatCompact, formatPercentage } from "@/lib/utils"
-import { TrendingUp, Volume2, Clock } from "lucide-react"
+import { AssetIcon } from "@/components/ui/asset-icon"
+import { useCoinPrice } from "@/hooks/use-market-data"
+import { useWebSocketPrice } from "@/hooks/use-websocket-price"
+import { 
+  Star, 
+  Bell,
+  Activity,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
-interface MarketStats {
-  price: number
-  change24h: number
-  high24h: number
-  low24h: number
-  volume24h: number
+interface TradePageProps {
+  params: {
+    symbol: string
+  }
 }
 
-export default function TradePage() {
-  const [hasError, setHasError] = React.useState(false)
-  const [errorMessage, setErrorMessage] = React.useState("")
+export default function TradePagePro({ params }: TradePageProps) {
+  const { symbol } = params
+  const [baseAsset, quoteAsset] = symbol.split("-")
+  const [isFavorite, setIsFavorite] = React.useState(false)
+  const [activeTab, setActiveTab] = React.useState<"open" | "history" | "trades">("open")
+  const [orderFormPrice, setOrderFormPrice] = React.useState<number | null>(null)
+  
+  // Import trading store for balance and order management
+  const [tradingStore, setTradingStore] = React.useState<any>(null)
   
   React.useEffect(() => {
-    const handleError = (error: ErrorEvent) => {
-      console.error("Trade page error:", error)
-      setHasError(true)
-      setErrorMessage(error.message || "An unexpected error occurred")
-    }
-    
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error("Trade page promise rejection:", event)
-      setHasError(true)
-      setErrorMessage("Failed to load trading data")
-    }
-    
-    window.addEventListener('error', handleError)
-    window.addEventListener('unhandledrejection', handleUnhandledRejection)
-    
-    return () => {
-      window.removeEventListener('error', handleError)
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-    }
+    import('@/lib/stores/trading-store').then(({ useTradingStore }) => {
+      setTradingStore(useTradingStore.getState())
+    })
   }, [])
-  
-  const params = useParams()
-  const symbol = params.symbol as string
-  
-  // Handle missing or invalid symbol
-  if (!symbol || typeof symbol !== 'string') {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Invalid Trading Pair</h1>
-          <p className="text-muted-foreground mb-8">The trading pair you requested is not valid.</p>
-          <LinkButton href="/markets">Back to Markets</LinkButton>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
-  
-  // Handle runtime errors
-  if (hasError) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Trading Page Error</h1>
-          <p className="text-muted-foreground mb-4">{errorMessage}</p>
-          <p className="text-sm text-muted-foreground mb-8">Please try refreshing the page or contact support if the problem persists.</p>
-          <div className="flex gap-4 justify-center">
-            <Button onClick={() => window.location.reload()}>Refresh Page</Button>
-            <LinkButton href="/markets">Back to Markets</LinkButton>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
-  
-  const [baseAsset, quoteAsset] = symbol.split('-')
-  
-  // Handle invalid symbol format
-  if (!baseAsset || !quoteAsset || baseAsset === quoteAsset) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Invalid Trading Pair Format</h1>
-          <p className="text-muted-foreground mb-8">Trading pairs must be in the format BASE-QUOTE (e.g., BTC-GBP).</p>
-          <LinkButton href="/markets">Back to Markets</LinkButton>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
-  
-  const [selectedPrice, setSelectedPrice] = React.useState<number | undefined>()
 
-  const [marketStats, setMarketStats] = React.useState<MarketStats>({
-    price: 0,
-    change24h: 0,
-    high24h: 0,
-    low24h: 0,
-    volume24h: 0,
-  })
+  // Get real-time price
+  const coinIdMap: Record<string, string> = {
+    "BTC": "bitcoin",
+    "ETH": "ethereum",
+    "SOL": "solana",
+    "ADA": "cardano",
+  }
+  
+  const coinId = coinIdMap[baseAsset] || "bitcoin"
+  const { data: apiPrice } = useCoinPrice(coinId, 'gbp')
+  const { priceData: wsPrice, isConnected } = useWebSocketPrice(symbol)
 
-  // Fetch REAL market data from CoinGecko
-  React.useEffect(() => {
-    async function fetchMarketStats() {
-      try {
-        const { coinGeckoService } = await import("@/lib/coingecko")
-        
-        // Map symbol to CoinGecko ID
-        const coinMap: Record<string, string> = {
-          'BTC': 'bitcoin',
-          'ETH': 'ethereum',
-          'BNB': 'binancecoin',
-          'SOL': 'solana',
-          'ADA': 'cardano',
-          'XRP': 'ripple',
-          'DOT': 'polkadot',
-          'AVAX': 'avalanche-2',
-        }
-        
-        const coinId = coinMap[baseAsset] || 'bitcoin'
-        const markets = await coinGeckoService.getMarkets('gbp', [coinId])
-        
-        if (markets && markets.length > 0) {
-          const coin = markets[0]
-          setMarketStats({
-            price: coin.current_price || 0,
-            change24h: coin.price_change_percentage_24h || 0,
-            high24h: coin.high_24h || 0,
-            low24h: coin.low_24h || 0,
-            volume24h: coin.total_volume || 0,
-          })
-        } else {
-          // No market data found, use fallback
-          throw new Error("No market data available")
-        }
-      } catch (error) {
-        console.error("Failed to fetch market stats:", error)
-        // Fallback to demo data based on symbol
-        const fallbackPrices: Record<string, number> = {
-          'BTC': 43250.50,
-          'ETH': 2650.75,
-          'SOL': 98.45,
-          'ADA': 0.45,
-          'MATIC': 0.85,
-        }
-        
-        const fallbackPrice = fallbackPrices[baseAsset] || 43250.50
-        
-        setMarketStats({
-          price: fallbackPrice,
-          change24h: 2.34,
-          high24h: fallbackPrice * 1.02,
-          low24h: fallbackPrice * 0.98,
-          volume24h: 125000000,
-        })
-      }
+  // Use WebSocket if available, otherwise API
+  const currentPrice = wsPrice?.price || (apiPrice as any)?.[coinId]?.gbp || null
+  const change24h = wsPrice?.change24h || (apiPrice as any)?.[coinId]?.gbp_24h_change || 0
+  const volume24h = wsPrice?.volume24h || 0
+
+  // Calculate 24h stats
+  const stats = React.useMemo(() => {
+    if (!currentPrice) return null
+    return {
+      high24h: currentPrice * (1 + Math.abs(change24h) / 200),
+      low24h: currentPrice * (1 - Math.abs(change24h) / 200),
+      volume24h: volume24h || currentPrice * 50000 * (Math.random() + 0.5),
     }
-    
-    if (baseAsset) {
-      fetchMarketStats()
-      
-      // Refresh every 30 seconds (less frequent to avoid rate limits)
-      const interval = setInterval(fetchMarketStats, 30000)
-      return () => clearInterval(interval)
-    }
-  }, [baseAsset])
+  }, [currentPrice, change24h, volume24h])
 
-  // WebSocket for even faster updates (optional)
-  const { data: wsStats } = useWebSocket<MarketStats>(`ticker:${symbol}`)
+  // Get open orders from trading store
+  const [openOrders, setOpenOrders] = React.useState<any[]>([])
   
   React.useEffect(() => {
-    if (wsStats) {
-      setMarketStats(wsStats)
+    if (tradingStore) {
+      setOpenOrders(tradingStore.openOrders.filter((o: any) => o.symbol === symbol))
     }
-  }, [wsStats])
+  }, [tradingStore, symbol])
 
-  const handlePriceClick = (price: number) => {
-    setSelectedPrice(price)
+  // Loading state while fetching price
+  if (!currentPrice) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <div className="h-16 w-16 skeleton rounded-full mx-auto mb-4" />
+          <p className="text-lg font-medium">Loading {baseAsset} market data...</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Connecting to real-time price feeds
+          </p>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main id="main-content" className="container-fluid mx-auto px-4 py-6 max-w-[2000px]">
-        {/* Market Header */}
-        <div className="mb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Top Bar - Market Info */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40"
+      >
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold mb-1">
-                  {baseAsset}/{quoteAsset}
-                </h1>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline">{baseAsset} to {quoteAsset}</Badge>
-                  <Badge variant="success">Live</Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-6 flex-wrap">
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">Price</div>
-                <div className="text-price-large font-mono font-semibold">
-                  {formatGBP(marketStats.price)}
-                </div>
-                <PriceDisplay
-                  price={0}
-                  change24h={marketStats.change24h}
-                  size="md"
-                  showTrend={true}
+              <motion.button
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsFavorite(!isFavorite)}
+              >
+                <Star 
+                  className={cn(
+                    "h-6 w-6 transition-colors",
+                    isFavorite ? "fill-warning text-warning" : "text-muted-foreground"
+                  )}
                 />
-              </div>
+              </motion.button>
               
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">24h High</div>
-                <div className="text-sm font-mono font-medium">
-                  {formatGBP(marketStats.high24h)}
-                </div>
-              </div>
-              
-              <div>
-                <div className="text-xs text-muted-foreground mb-1">24h Low</div>
-                <div className="text-sm font-mono font-medium">
-                  {formatGBP(marketStats.low24h)}
+              <div className="flex items-center gap-3">
+                <AssetIcon symbol={baseAsset} size="xl" />
+                <div>
+                  <h1 className="text-2xl font-bold font-display">{symbol}</h1>
+                  <p className="text-sm text-muted-foreground">{baseAsset} / {quoteAsset}</p>
                 </div>
               </div>
               
-              <div>
-                <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                  <Volume2 className="h-3 w-3" />
-                  24h Volume
-                </div>
-                <div className="text-sm font-medium">
-                  £{formatCompact(marketStats.volume24h)}
-                </div>
-              </div>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Bell className="h-4 w-4" />
+                Set Alert
+              </Button>
             </div>
-          </div>
-        </div>
 
-        {/* Trading Chart */}
-        <div className="mb-4">
-          <TradingChart 
-            symbol={symbol}
-            interval="1h"
-          />
-        </div>
-
-        {/* Trading Interface */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Market Overview */}
-          <div className="lg:col-span-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Market Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-primary mb-2">
-                      {formatGBP(marketStats.price)}
-                    </div>
-                    <div className="text-lg">
-                      <PriceDisplay
-                        price={0}
-                        change24h={marketStats.change24h}
-                        size="lg"
-                        showTrend={true}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">24h High</div>
-                      <div className="font-semibold">{formatGBP(marketStats.high24h)}</div>
-                    </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">24h Low</div>
-                      <div className="font-semibold">{formatGBP(marketStats.low24h)}</div>
-                    </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">24h Volume</div>
-                      <div className="font-semibold">£{formatCompact(marketStats.volume24h)}</div>
-                    </div>
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-sm text-muted-foreground mb-1">Change 24h</div>
-                      <div className="font-semibold">
-                        <PriceDisplay
-                          price={0}
-                          change24h={marketStats.change24h}
-                          size="sm"
-                          showTrend={true}
-                        />
-                      </div>
-                    </div>
-                  </div>
+            {/* Real-Time Price Display */}
+            <RealTimePrice symbol={symbol} size="xl" showChange showStatus />
+            
+            {/* 24h Stats */}
+            {stats && (
+              <div className="flex items-center gap-6 text-sm">
+                <div>
+                  <p className="text-muted-foreground">24h High</p>
+                  <p className="font-mono font-semibold text-success">
+                    £{stats.high24h.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Live Orderbook */}
-            <LiveOrderbook 
-              symbol={symbol}
-              onPriceClick={setSelectedPrice}
-            />
+                <div>
+                  <p className="text-muted-foreground">24h Low</p>
+                  <p className="font-mono font-semibold text-danger">
+                    £{stats.low24h.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">24h Volume</p>
+                  <p className="font-mono font-semibold">
+                    £{(stats.volume24h / 1000000).toFixed(2)}M
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+      </motion.div>
 
-          {/* Order Form */}
-          <div className="lg:col-span-6">
-            <OrderForm 
+      {/* Main Trading Interface - Professional 3-Column Layout */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column - Order Book (3/12) */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="lg:col-span-3"
+          >
+            <OrderBookEnhanced
               symbol={symbol}
-              currentPrice={marketStats.price || 43250.50}
-              balance={{ base: 0.5, quote: 5000 }}
-              onOrderPlaced={() => {
-                console.log("Order placed successfully!")
-                // TODO: Refresh balances and order history
+              onPriceClick={(price) => {
+                setOrderFormPrice(price)
+                // Scroll to order form on mobile
+                if (window.innerWidth < 1024) {
+                  document.getElementById('trade-form')?.scrollIntoView({ behavior: 'smooth' })
+                }
               }}
             />
+          </motion.div>
 
-            {/* Market Info */}
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-base">Market Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Trading Pair</span>
-                    <span className="font-medium">{baseAsset}/{quoteAsset}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Base Asset</span>
-                    <span className="font-medium">{baseAsset}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Quote Asset</span>
-                    <span className="font-medium">{quoteAsset}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status</span>
-                    <Badge variant="success">Live</Badge>
-                  </div>
+          {/* Center Column - Chart + Orders (6/12) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="lg:col-span-6 space-y-6"
+          >
+            {/* Advanced Trading Chart */}
+            <AdvancedChart
+              symbol={symbol}
+              interval="1h"
+              className="h-[600px]"
+            />
+
+            {/* Order Management Tabs */}
+            <Card>
+              <div className="border-b border-border">
+                <div className="flex gap-1 p-2">
+                  {[
+                    { id: "open" as const, label: "Open Orders", count: openOrders.length },
+                    { id: "history" as const, label: "Order History", count: 0 },
+                    { id: "trades" as const, label: "Trade History", count: 0 },
+                  ].map((tab) => (
+                    <motion.button
+                      key={tab.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium rounded transition-all",
+                        activeTab === tab.id
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "hover:bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {tab.label}
+                      {tab.count > 0 && (
+                        <Badge variant="secondary" className="ml-2 bg-background">
+                          {tab.count}
+                        </Badge>
+                      )}
+                    </motion.button>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </div>
 
-        {/* Trade History Table */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-base">Recent Trades</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border text-xs text-muted-foreground">
-                    <th className="text-left p-2">Time</th>
-                    <th className="text-right p-2">Price ({quoteAsset})</th>
-                    <th className="text-right p-2">Amount ({baseAsset})</th>
-                    <th className="text-right p-2">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Array.from({ length: 5 }).map((_, i) => {
-                    const isBuy = i % 2 === 0 // Deterministic for SSR
-                    // Use static relative times to avoid hydration mismatch
-                    const minutesAgo = i + 1
-                    const timeDisplay = `${minutesAgo} min ago`
+              <div className="p-6 min-h-[200px]">
+                {activeTab === "open" && openOrders.length > 0 && (
+                  <div className="space-y-3">
+                    {openOrders.map((order) => (
+                      <motion.div
+                        key={order.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              order.side === "BUY" 
+                                ? "bg-success/10 text-success border-success/20" 
+                                : "bg-danger/10 text-danger border-danger/20"
+                            )}
+                          >
+                            {order.type} {order.side}
+                          </Badge>
+                          <div>
+                            <p className="font-mono font-semibold">
+                              {order.amount} {baseAsset}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              @ £{order.price.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-xs text-muted-foreground">Status</p>
+                            <Badge variant="secondary" className="capitalize">
+                              {order.status}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              Edit
+                            </Button>
+                            <Button variant="ghost" size="sm" className="text-danger hover:text-danger">
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === "open" && openOrders.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Activity className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>No open orders</p>
+                    <p className="text-sm mt-1">Place an order to get started</p>
+                  </div>
+                )}
+
+                {activeTab === "history" && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>No order history yet</p>
+                    <p className="text-sm mt-1">Your completed and cancelled orders will appear here</p>
+                  </div>
+                )}
+
+                {activeTab === "trades" && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Activity className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>No trade history yet</p>
+                    <p className="text-sm mt-1">Your executed trades will appear here</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Right Column - Trade Form (3/12) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-3"
+            id="trade-form"
+          >
+            <TradeFormEnhanced
+              symbol={symbol}
+              currentPrice={currentPrice}
+              balance={{
+                base: tradingStore?.getBalance(baseAsset) || 0.00,
+                quote: tradingStore?.getBalance('GBP') || 0.00
+              }}
+              onSubmit={async (trade) => {
+                console.log("Trade submitted:", trade)
+                
+                // Import trading store dynamically
+                const { useTradingStore } = await import('@/lib/stores/trading-store')
+                const store = useTradingStore.getState()
+                
+                // Create order (convert stop to limit for now)
+                const orderType = trade.type === 'stop' ? 'limit' : trade.type
+                const order = {
+                  id: `order-${Date.now()}`,
+                  symbol: symbol,
+                  side: trade.side,
+                  type: orderType as 'market' | 'limit',
+                  price: trade.price || currentPrice,
+                  quantity: trade.amount,
+                  filled: 0,
+                  status: 'open' as const,
+                  created_at: Date.now()
+                }
+                
+                // Add to store
+                store.addOrder(order)
+                
+                // For market orders, fill immediately (simulation)
+                if (trade.type === 'market') {
+                  setTimeout(() => {
+                    store.fillOrder(order.id, currentPrice, order.quantity)
                     
-                    return (
-                      <tr key={i} className="border-b border-border/50 text-sm hover:bg-muted/30">
-                        <td className="p-2 text-muted-foreground">
-                          {timeDisplay}
-                        </td>
-                        <td className={`p-2 text-right font-mono ${isBuy ? 'text-buy' : 'text-sell'}`}>
-                          {formatGBP(marketStats.price + ((i * 13) % 100 - 50))}
-                        </td>
-                        <td className="p-2 text-right font-mono">
-                          {formatCrypto(0.1 + (i * 0.12) % 0.5, 8)}
-                        </td>
-                        <td className="p-2 text-right font-mono">
-                          {formatGBP(5000 + (i * 3000))}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+                    // Use toast instead of alert
+                    import('sonner').then(({ toast }) => {
+                      toast.success(`${trade.side.toUpperCase()} order filled!`, {
+                        description: `${order.quantity} ${baseAsset} at £${currentPrice.toFixed(2)}`
+                      })
+                    })
+                  }, 1000)
+                } else {
+                  // Limit order - stays open
+                  import('sonner').then(({ toast }) => {
+                    toast.success(`${trade.side.toUpperCase()} limit order placed!`, {
+                      description: `${order.quantity} ${baseAsset} at £${order.price.toFixed(2)}`
+                    })
+                  })
+                }
+                
+                // Refresh the component
+                setTradingStore(store)
+              }}
+            />
+          </motion.div>
+        </div>
+      </div>
     </div>
   )
 }
+

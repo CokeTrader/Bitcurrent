@@ -22,18 +22,43 @@ export function TradeHistory({ symbol, compact = false, limit = 20 }: TradeHisto
   const [trades, setTrades] = useState<Trade[]>([]);
 
   useEffect(() => {
-    // TODO: Fetch real trades from API
-    // For now, generate mock data
-    const mockTrades: Trade[] = Array.from({ length: limit }, (_, i) => ({
-      id: `trade-${i}`,
-      symbol,
-      price: (45000 + (Math.random() - 0.5) * 1000).toFixed(2),
-      quantity: (Math.random() * 2).toFixed(4),
-      side: Math.random() > 0.5 ? 'buy' : 'sell',
-      timestamp: new Date(Date.now() - i * 60000).toISOString(),
-    }));
-
-    setTrades(mockTrades);
+    // Get trades from trading store
+    import('@/lib/stores/trading-store').then(({ useTradingStore }) => {
+      const store = useTradingStore.getState()
+      const symbolTrades = store.tradeHistory
+        .filter((t: any) => t.symbol === symbol)
+        .slice(0, limit)
+        .map((t: any) => ({
+          id: t.id,
+          symbol: t.symbol,
+          price: t.price.toFixed(2),
+          quantity: t.quantity.toFixed(4),
+          side: t.side,
+          timestamp: new Date(t.timestamp).toISOString()
+        }))
+      setTrades(symbolTrades)
+    })
+    
+    // Subscribe to updates
+    const interval = setInterval(() => {
+      import('@/lib/stores/trading-store').then(({ useTradingStore }) => {
+        const store = useTradingStore.getState()
+        const symbolTrades = store.tradeHistory
+          .filter((t: any) => t.symbol === symbol)
+          .slice(0, limit)
+          .map((t: any) => ({
+            id: t.id,
+            symbol: t.symbol,
+            price: t.price.toFixed(2),
+            quantity: t.quantity.toFixed(4),
+            side: t.side,
+            timestamp: new Date(t.timestamp).toISOString()
+          }))
+        setTrades(symbolTrades)
+      })
+    }, 1000)
+    
+    return () => clearInterval(interval)
   }, [symbol, limit]);
 
   if (compact) {

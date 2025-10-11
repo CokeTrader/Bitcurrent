@@ -68,8 +68,9 @@ const config = {
         purple: "#6200EA", // Innovation accent
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+        sans: ['var(--font-sora)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-space-grotesk)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'Courier New', 'monospace'],
       },
       fontSize: {
         'portfolio': ['48px', { lineHeight: '1.2', fontWeight: '700' }], // Large portfolio balance

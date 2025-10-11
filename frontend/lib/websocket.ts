@@ -113,7 +113,11 @@ export function useWebSocket<T>(channel: string, initialData?: T) {
 
   useEffect(() => {
     // Initialize connection if not already connected
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080'
+    // Use relative WS URL for production (routed via Ingress), localhost for dev
+    const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    const wsProtocol = isProduction && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const wsHost = isProduction ? window.location.host : 'localhost:8080'
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `${wsProtocol}//${wsHost}`
     wsClient.connect(wsUrl)
 
     setConnected(wsClient.isConnected())

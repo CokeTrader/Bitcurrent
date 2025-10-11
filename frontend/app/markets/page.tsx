@@ -1,139 +1,81 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { LinkButton } from "@/components/ui/link-button"
-import { PriceDisplay } from "@/components/ui/price-display"
-import { Search, Star, TrendingUp } from "lucide-react"
-import { useWebSocket } from "@/lib/websocket"
+import { Input } from "@/components/ui/input"
+import { AssetIcon } from "@/components/ui/asset-icon"
+import { PriceChange } from "@/components/ui/price-change"
+import { useMarketData, useTrendingCoins } from "@/hooks/use-market-data"
+import { Search, Star, TrendingUp, Filter, ArrowUpDown } from "lucide-react"
+import Link from "next/link"
 
-interface Market {
-  symbol: string
-  baseAsset: string
-  quoteAsset: string
-  price: number
-  change24h: number
-  volume24h: number
-  high24h: number
-  low24h: number
-}
+type SortKey = "name" | "price" | "change24h" | "volume24h" | "marketCap"
 
 export default function MarketsPage() {
+  const { data: markets, isLoading } = useMarketData('gbp')
+  const { data: trending } = useTrendingCoins()
+  
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [sortKey, setSortKey] = React.useState<SortKey>("marketCap")
+  const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("desc")
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set())
-  const [marketData, setMarketData] = React.useState<Market[]>([])
-  const [loading, setLoading] = React.useState(true)
-  
-  // Fetch REAL markets from CoinGecko
-  React.useEffect(() => {
-    async function fetchMarkets() {
-      try {
-        const { coinGeckoService } = await import("@/lib/coingecko")
-        
-        // Fetch real market data from CoinGecko
-        const coins = ['bitcoin', 'ethereum', 'binancecoin', 'solana', 'cardano', 'ripple', 'polkadot', 'avalanche-2', 'chainlink', 'uniswap']
-        const cgMarkets = await coinGeckoService.getMarkets('gbp', coins)
-        
-        // Transform to our format
-        const markets = cgMarkets.map((coin: any) => ({
-          symbol: `${coin.symbol.toUpperCase()}-GBP`,
-          baseAsset: coin.symbol.toUpperCase(),
-          quoteAsset: 'GBP',
-          price: coin.current_price,
-          change24h: coin.price_change_percentage_24h,
-          volume24h: coin.total_volume,
-          high24h: coin.high_24h,
-          low24h: coin.low_24h,
-        }))
-        
-        setMarketData(markets)
-      } catch (error) {
-        console.error("Failed to fetch CoinGecko data:", error)
-        
-        // Fallback: Try backend API
-        try {
-          const { apiClient } = await import("@/lib/api/client")
-          const response = await apiClient.getMarkets()
-          
-          const marketsWithStats = await Promise.all(
-            response.markets.map(async (market: any) => {
-              try {
-                const ticker = await apiClient.getTicker(market.symbol)
-                return {
-                  symbol: market.symbol,
-                  baseAsset: market.base_currency,
-                  quoteAsset: market.quote_currency,
-                  price: parseFloat(ticker.last_price),
-                  change24h: parseFloat(ticker.price_change_percent_24h),
-                  volume24h: parseFloat(ticker.volume_24h),
-                  high24h: parseFloat(ticker.high_24h),
-                  low24h: parseFloat(ticker.low_24h),
-                }
-              } catch (error) {
-                return {
-                  symbol: market.symbol,
-                  baseAsset: market.base_currency,
-                  quoteAsset: market.quote_currency,
-                  price: 0,
-                  change24h: 0,
-                  volume24h: 0,
-                  high24h: 0,
-                  low24h: 0,
-                }
-              }
-            })
-          )
-          
-          setMarketData(marketsWithStats)
-        } catch (backendError) {
-          console.error("Backend API also failed:", backendError)
-          // Use demo data as last resort
-          setMarketData([
-            {
-              symbol: "BTC-GBP",
-              baseAsset: "BTC",
-              quoteAsset: "GBP",
-              price: 43250.50,
-              change24h: 2.34,
-              volume24h: 125000000,
-              high24h: 44100.00,
-              low24h: 42800.00,
-            },
-          ])
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchMarkets()
-    
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchMarkets, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // WebSocket disabled for now to avoid connection spam when backend is unavailable
-  // TODO: Re-enable when backend WebSocket server is running
-  // const { data: wsMarkets } = useWebSocket<Market[]>('markets:all')
-  
-  // Update market data when WebSocket sends updates
-  // React.useEffect(() => {
-  //   if (wsMarkets) {
-  //     setMarketData(wsMarkets)
-  //   }
-  // }, [wsMarkets])
 
   // Filter markets based on search
-  const filteredMarkets = marketData.filter((market) =>
-    market.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    market.baseAsset.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredMarkets = React.useMemo(() => {
+    if (!markets) return []
+    
+    return markets.filter(market => {
+      const searchLower = searchQuery.toLowerCase()
+      return (
+        market.baseAsset.toLowerCase().includes(searchLower) ||
+        market.name.toLowerCase().includes(searchLower)
+      )
+    })
+  }, [markets, searchQuery])
+
+  // Sort markets
+  const sortedMarkets = React.useMemo(() => {
+    return [...filteredMarkets].sort((a, b) => {
+      let aVal: number, bVal: number
+      
+      switch (sortKey) {
+        case "name":
+          return sortDirection === "asc" 
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name)
+        case "price":
+          aVal = a.price
+          bVal = b.price
+          break
+        case "change24h":
+          aVal = a.change24h
+          bVal = b.change24h
+          break
+        case "volume24h":
+          aVal = a.volume24h
+          bVal = b.volume24h
+          break
+        case "marketCap":
+          aVal = a.marketCap
+          bVal = b.marketCap
+          break
+        default:
+          return 0
+      }
+      
+      return sortDirection === "asc" ? aVal - bVal : bVal - aVal
+    })
+  }, [filteredMarkets, sortKey, sortDirection])
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortKey(key)
+      setSortDirection("desc")
+    }
+  }
 
   const toggleFavorite = (symbol: string) => {
     const newFavorites = new Set(favorites)
@@ -147,195 +89,222 @@ export default function MarketsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main id="main-content" className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Markets</h1>
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight mb-2">Markets</h1>
           <p className="text-muted-foreground">
-            Live cryptocurrency prices and 24-hour statistics
+            Live cryptocurrency prices and trading pairs
           </p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search markets (e.g., BTC, Bitcoin)..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search markets"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              All Markets
-            </Button>
-            <Button variant="ghost" size="sm">
-              Favorites
-            </Button>
-            <Button variant="ghost" size="sm">
-              GBP Pairs
-            </Button>
-          </div>
-        </div>
-
-        {/* Markets Table - Desktop */}
-        <Card className="hidden md:block">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">
-                    <span className="sr-only">Favorite</span>
-                  </th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Market</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Price</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">24h Change</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">24h Volume</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">24h High</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">24h Low</th>
-                  <th className="text-right p-4 text-sm font-medium text-muted-foreground">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredMarkets.map((market) => (
-                  <tr
-                    key={market.symbol}
-                    className="border-b border-border hover:bg-muted/50 transition-colors"
-                  >
-                    <td className="p-4">
-                      <button
-                        onClick={() => toggleFavorite(market.symbol)}
-                        className="text-muted-foreground hover:text-warning transition-colors"
-                        aria-label={favorites.has(market.symbol) ? "Remove from favorites" : "Add to favorites"}
-                      >
-                        <Star
-                          className={`h-4 w-4 ${
-                            favorites.has(market.symbol) ? "fill-warning text-warning" : ""
-                          }`}
-                        />
-                      </button>
-                    </td>
-                    <td className="p-4">
-                      <div>
-                        <div className="font-semibold">{market.baseAsset}/{market.quoteAsset}</div>
-                        <div className="text-xs text-muted-foreground">{market.symbol}</div>
+        {/* Trending Section */}
+        {!isLoading && markets && (
+          <Card className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="h-5 w-5 text-warning" />
+              <h3 className="font-semibold">Trending Now</h3>
+            </div>
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+              {markets.slice(0, 6).map((market) => (
+                <Link
+                  key={market.symbol}
+                  href={`/trade/${market.symbol}`}
+                  className="flex-shrink-0"
+                >
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer min-w-[200px]">
+                    <AssetIcon symbol={market.baseAsset} size="md" />
+                    <div>
+                      <div className="font-semibold text-sm">{market.baseAsset}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="font-mono text-sm">
+                          £{market.price.toLocaleString('en-GB')}
+                        </span>
+                        <PriceChange value={market.change24h} size="sm" showArrow={false} />
                       </div>
-                    </td>
-                    <td className="p-4 text-right">
-                      <span className="font-mono font-medium">
-                        £{market.price.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <PriceDisplay
-                        price={0}
-                        change24h={market.change24h}
-                        size="sm"
-                        showTrend={true}
-                        className="justify-end"
-                      />
-                    </td>
-                    <td className="p-4 text-right text-sm text-muted-foreground">
-                      £{(market.volume24h / 1000000).toFixed(2)}M
-                    </td>
-                    <td className="p-4 text-right text-sm font-mono">
-                      £{market.high24h.toLocaleString('en-GB')}
-                    </td>
-                    <td className="p-4 text-right text-sm font-mono">
-                      £{market.low24h.toLocaleString('en-GB')}
-                    </td>
-                    <td className="p-4 text-right">
-                      <LinkButton href={`/trade/${market.symbol}`} size="sm">
-                        Trade
-                      </LinkButton>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Search and Filters */}
+        <Card className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search cryptocurrency by name or symbol..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Star className="h-4 w-4" />
+                Favorites
+              </Button>
+              <Button variant="outline">
+                <Filter className="h-4 w-4" />
+                Filters
+              </Button>
+            </div>
           </div>
         </Card>
 
-        {/* Markets Cards - Mobile */}
-        <div className="md:hidden space-y-3">
-          {filteredMarkets.map((market) => (
-            <Card key={market.symbol} className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => toggleFavorite(market.symbol)}
-                    className="text-muted-foreground hover:text-warning"
-                    aria-label={favorites.has(market.symbol) ? "Remove from favorites" : "Add to favorites"}
-                  >
-                    <Star
-                      className={`h-4 w-4 ${
-                        favorites.has(market.symbol) ? "fill-warning text-warning" : ""
-                      }`}
-                    />
-                  </button>
-                  <div>
-                    <div className="font-semibold">{market.baseAsset}/{market.quoteAsset}</div>
-                    <div className="text-xs text-muted-foreground">{market.symbol}</div>
-                  </div>
-                </div>
-                <LinkButton href={`/trade/${market.symbol}`} size="sm">
-                  Trade
-                </LinkButton>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Price</span>
-                  <span className="font-mono font-semibold">
-                    £{market.price.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">24h Change</span>
-                  <PriceDisplay
-                    price={0}
-                    change24h={market.change24h}
-                    size="sm"
-                    showTrend={true}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">24h Volume</span>
-                  <span className="text-sm">£{(market.volume24h / 1000000).toFixed(2)}M</span>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        {/* Markets Table */}
+        <Card className="p-6">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border text-sm text-muted-foreground">
+                  <th className="text-left font-medium pb-4 w-8"></th>
+                  <th className="text-left font-medium pb-4">
+                    <button
+                      onClick={() => handleSort("name")}
+                      className="inline-flex items-center gap-1 hover:text-foreground"
+                    >
+                      Name
+                      <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                  </th>
+                  <th className="text-right font-medium pb-4">
+                    <button
+                      onClick={() => handleSort("price")}
+                      className="inline-flex items-center gap-1 hover:text-foreground"
+                    >
+                      Price
+                      <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                  </th>
+                  <th className="text-right font-medium pb-4">
+                    <button
+                      onClick={() => handleSort("change24h")}
+                      className="inline-flex items-center gap-1 hover:text-foreground"
+                    >
+                      24h Change
+                      <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                  </th>
+                  <th className="text-right font-medium pb-4">
+                    <button
+                      onClick={() => handleSort("volume24h")}
+                      className="inline-flex items-center gap-1 hover:text-foreground"
+                    >
+                      24h Volume
+                      <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                  </th>
+                  <th className="text-right font-medium pb-4">
+                    <button
+                      onClick={() => handleSort("marketCap")}
+                      className="inline-flex items-center gap-1 hover:text-foreground"
+                    >
+                      Market Cap
+                      <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                  </th>
+                  <th className="text-right font-medium pb-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  // Loading state
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <tr key={i} className="border-b border-border">
+                      <td className="py-4" colSpan={7}>
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 skeleton rounded-full" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 w-32 skeleton rounded" />
+                            <div className="h-3 w-24 skeleton rounded" />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  sortedMarkets.map((market) => (
+                    <tr
+                      key={market.symbol}
+                      className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors group"
+                    >
+                      <td className="py-4">
+                        <button
+                          onClick={() => toggleFavorite(market.symbol)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Star
+                            className={`h-4 w-4 ${
+                              favorites.has(market.symbol)
+                                ? "fill-warning text-warning"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </button>
+                      </td>
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <AssetIcon symbol={market.baseAsset} size="md" />
+                          <div>
+                            <div className="font-semibold">{market.baseAsset}</div>
+                            <div className="text-xs text-muted-foreground">{market.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right font-mono font-semibold">
+                        £{market.price.toLocaleString('en-GB', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: market.price > 100 ? 2 : 8
+                        })}
+                      </td>
+                      <td className="text-right">
+                        <PriceChange value={market.change24h} type="percentage" />
+                      </td>
+                      <td className="text-right font-mono text-sm">
+                        £{(market.volume24h / 1000000).toFixed(2)}M
+                      </td>
+                      <td className="text-right font-mono text-sm">
+                        £{(market.marketCap / 1000000000).toFixed(2)}B
+                      </td>
+                      <td className="text-right">
+                        <Link href={`/trade/${market.symbol}`}>
+                          <Button variant="outline" size="sm">
+                            Trade
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Empty State */}
-        {filteredMarkets.length === 0 && (
-          <Card className="p-12">
-            <div className="text-center space-y-3">
-              <Search className="h-12 w-12 text-muted-foreground mx-auto" />
-              <h3 className="text-lg font-semibold">No markets found</h3>
-              <p className="text-sm text-muted-foreground">
-                Try adjusting your search query or filters
-              </p>
+          {!isLoading && sortedMarkets.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No markets found matching "{searchQuery}"</p>
               <Button
-                variant="outline"
+                variant="ghost"
+                size="sm"
                 onClick={() => setSearchQuery("")}
                 className="mt-4"
               >
                 Clear Search
               </Button>
             </div>
-          </Card>
-        )}
-      </main>
+          )}
 
-      <Footer />
+          {!isLoading && sortedMarkets.length > 0 && (
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              Showing {sortedMarkets.length} markets • Updated every 30 seconds
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

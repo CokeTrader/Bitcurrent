@@ -3,400 +3,422 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Check, Eye, EyeOff, Mail, Lock, Phone } from "lucide-react"
-import { Header } from "@/components/layout/header"
+import { Label } from "@/components/ui/label"
+import { AuthLayout } from "@/components/auth/AuthLayout"
+import { Progress } from "@/components/ui/progress"
+import { 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  ArrowRight, 
+  Check,
+  X,
+  CheckCircle2,
+  ArrowLeft
+} from "lucide-react"
+import { 
+  signupSchema, 
+  calculatePasswordStrength, 
+  checkPasswordRequirements 
+} from "@/lib/utils/validation"
+import { cn } from "@/lib/utils"
 
-export default function RegisterPage() {
+type SignupFormData = z.infer<typeof signupSchema>
+
+const steps = [
+  { id: 1, name: 'Email', description: 'Enter your email' },
+  { id: 2, name: 'Password', description: 'Secure your account' },
+  { id: 3, name: 'Verify', description: 'Check your inbox' }
+]
+
+export default function RegisterPagePremium() {
   const router = useRouter()
-  const [step, setStep] = React.useState(1)
+  const [currentStep, setCurrentStep] = React.useState(1)
   const [showPassword, setShowPassword] = React.useState(false)
-  const [loading, setLoading] = React.useState(false)
-  
-  // Form state
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [confirmPassword, setConfirmPassword] = React.useState("")
-  const [phone, setPhone] = React.useState("")
-  const [agreedToTerms, setAgreedToTerms] = React.useState(false)
-  
-  // Validation state
-  const [emailValid, setEmailValid] = React.useState<boolean | undefined>()
-  const [emailError, setEmailError] = React.useState("")
-  const [passwordError, setPasswordError] = React.useState("")
-  const [phoneError, setPhoneError] = React.useState("")
-  const [submitError, setSubmitError] = React.useState("")
+  const [emailSubmitted, setEmailSubmitted] = React.useState(false)
 
-  // Real-time email validation
-  React.useEffect(() => {
-    if (!email) {
-      setEmailValid(undefined)
-      setEmailError("")
-      return
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    watch,
+    trigger
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    mode: "onChange"
+  })
+
+  const email = watch("email")
+  const password = watch("password")
+  const acceptTerms = watch("acceptTerms")
+
+  const passwordStrength = password ? calculatePasswordStrength(password) : null
+  const passwordRequirements = password ? checkPasswordRequirements(password) : []
+
+  const handleNextStep = async () => {
+    let isValid = false
     
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const isValid = emailRegex.test(email)
-    setEmailValid(isValid)
-    setEmailError(isValid ? "" : "Please enter a valid email address")
-  }, [email])
-
-  // Password strength calculation
-  const getPasswordStrength = (pwd: string): number => {
-    let strength = 0
-    if (pwd.length >= 8) strength++
-    if (pwd.length >= 12) strength++
-    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++
-    if (/\d/.test(pwd)) strength++
-    if (/[^a-zA-Z0-9]/.test(pwd)) strength++
-    return strength
+    if (currentStep === 1) {
+      isValid = await trigger("email")
+      if (isValid) {
+        setEmailSubmitted(true)
+        setCurrentStep(2)
+      }
+    } else if (currentStep === 2) {
+      isValid = await trigger(["password", "acceptTerms"])
+      if (isValid) {
+        setCurrentStep(3)
+      }
+    }
   }
 
-  const passwordStrength = getPasswordStrength(password)
-  const strengthLabels = ["Very Weak", "Weak", "Fair", "Good", "Strong"]
-  const strengthColors = ["bg-sell", "bg-sell/70", "bg-warning", "bg-buy/70", "bg-buy"]
-
-  // Real-time password validation
-  React.useEffect(() => {
-    if (!password) {
-      setPasswordError("")
-      return
-    }
-
-    const errors = []
-    if (password.length < 12) errors.push("at least 12 characters")
-    if (!/[A-Z]/.test(password)) errors.push("1 uppercase letter")
-    if (!/[0-9]/.test(password)) errors.push("1 number")
-    if (!/[^a-zA-Z0-9]/.test(password)) errors.push("1 special character")
-    
-    if (errors.length > 0) {
-      setPasswordError(`Password must contain ${errors.join(", ")}`)
-    } else {
-      setPasswordError("")
-    }
-  }, [password])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitError("")
-    
-    if (step < 3) {
-      setStep(step + 1)
-      return
-    }
-
-    setLoading(true)
-    
+  const onSubmit = async (data: SignupFormData) => {
     try {
       const { apiClient } = await import("@/lib/api/client")
-      const response = await apiClient.register(email, password, "User", "Account")
+      const response = await apiClient.register(data.email, data.password, "User", "Account")
       
-      // Successfully registered - redirect to dashboard
-      router.push("/dashboard")
-    } catch (error: any) {
-      console.error("Registration failed:", error)
-      
-      // Show user-friendly error message
-      let errorMessage = "Registration failed. Please try again."
-      
-      if (error.response) {
-        const status = error.response.status
-        const data = error.response.data
-        
-        if (status === 409) {
-          errorMessage = "This email is already registered. Please sign in instead."
-        } else if (status === 400) {
-          errorMessage = data.message || "Invalid registration data. Please check your inputs."
-        } else if (status === 500) {
-          errorMessage = "Server error. Please try again in a moment."
-        } else if (data && data.message) {
-          errorMessage = data.message
-        }
-      } else if (error.request) {
-        errorMessage = "Cannot connect to server. Please check your internet connection."
+      // Set session cookie for middleware authentication
+      if (response.token && typeof window !== 'undefined') {
+        document.cookie = `session_token=${response.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
       }
       
-      setSubmitError(errorMessage)
-    } finally {
-      setLoading(false)
+      toast.success("Account created!", {
+        description: "Check your email to verify your account"
+      })
+      
+      // Move to verification step
+      setCurrentStep(3)
+    } catch (error: any) {
+      toast.error("Registration failed", {
+        description: error.message || "Please try again"
+      })
     }
+  }
+
+  const progress = (currentStep / 3) * 100
+
+  // Step 3 - Email Verification
+  if (currentStep === 3) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-success/5 animate-gradient" />
+        
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 text-center max-w-md"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+            className="h-24 w-24 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6"
+          >
+            <CheckCircle2 className="h-12 w-12 text-success" />
+          </motion.div>
+          
+          <h2 className="text-3xl font-bold mb-3 font-display">Check your email</h2>
+          <p className="text-muted-foreground mb-2">
+            We've sent a verification link to
+          </p>
+          <p className="text-foreground font-semibold mb-6">{email}</p>
+          
+          <p className="text-sm text-muted-foreground mb-8">
+            Click the link in the email to verify your account and start trading.
+          </p>
+          
+          <div className="space-y-3">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              size="lg"
+              className="w-full"
+            >
+              Go to Dashboard
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-sm"
+              onClick={() => toast.success("Verification email resent!")}
+            >
+              Didn't receive the email? Resend
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main id="main-content" className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-4rem)]">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
-            <CardDescription className="text-center">
-              Get started with BitCurrent in under 2 minutes
-            </CardDescription>
-            
-            {/* Progress Indicator */}
-            <div className="flex items-center justify-center gap-2 pt-4">
-              {[1, 2, 3].map((s) => (
-                <div
-                  key={s}
-                  className={`h-1.5 rounded-full transition-all ${
-                    s === step
-                      ? "w-8 bg-primary"
-                      : s < step
-                      ? "w-6 bg-buy"
-                      : "w-6 bg-muted"
-                  }`}
-                  role="progressbar"
-                  aria-label={`Step ${s} of 3`}
-                  aria-valuenow={s}
-                  aria-valuemin={1}
-                  aria-valuemax={3}
-                />
-              ))}
+    <AuthLayout
+      title="Create your account"
+      subtitle="Join 500,000+ traders on BitCurrent"
+      showBackLink={currentStep > 1}
+      backLinkText="Back"
+      backLinkHref="#"
+    >
+      {/* Progress bar */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          {steps.map((step, index) => (
+            <div key={step.id} className="flex items-center">
+              <div className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all",
+                currentStep >= step.id 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {currentStep > step.id ? <Check className="h-4 w-4" /> : step.id}
+              </div>
+              {index < steps.length - 1 && (
+                <div className={cn(
+                  "h-0.5 w-12 mx-2 transition-all",
+                  currentStep > step.id ? "bg-primary" : "bg-muted"
+                )} />
+              )}
             </div>
-          </CardHeader>
+          ))}
+        </div>
+        <Progress value={progress} className="h-1" />
+      </div>
 
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              {/* Error Message */}
-              {submitError && (
-                <div
-                  className="bg-sell/10 border border-sell/20 text-sell px-4 py-3 rounded-md text-sm flex items-start gap-2"
-                  role="alert"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <div>
-                    <strong>Registration Error:</strong>
-                    <p>{submitError}</p>
-                    {submitError.includes("already registered") && (
-                      <p className="mt-2">
-                        <Link href="/auth/login" className="underline font-medium">
-                          Click here to sign in instead
-                        </Link>
-                      </p>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <AnimatePresence mode="wait">
+          {/* Step 1 - Email */}
+          {currentStep === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email Address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    className={cn(
+                      "pl-10 h-12 bg-background/50",
+                      errors.email && "border-danger"
                     )}
-                  </div>
+                    {...register("email")}
+                    autoComplete="email"
+                    autoFocus
+                  />
                 </div>
-              )}
-
-              {/* Step 1: Email */}
-              {step === 1 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        className="pl-10"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        error={emailError}
-                        success={emailValid}
-                        autoComplete="email"
-                        required
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 2: Password */}
-              {step === 2 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-2">
-                    <label htmlFor="password" className="text-sm font-medium">
-                      Create Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a strong password"
-                        className="pl-10 pr-10"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        error={passwordError}
-                        autoComplete="new-password"
-                        required
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Password Strength Meter */}
-                  {password && (
-                    <div className="space-y-2">
-                      <div className="flex gap-1">
-                        {[0, 1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className={`h-1 flex-1 rounded-full transition-colors ${
-                              i < passwordStrength ? strengthColors[passwordStrength - 1] : "bg-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Strength: <span className="font-medium">{strengthLabels[passwordStrength - 1] || "Very Weak"}</span>
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="text-sm font-medium">
-                      Confirm Password
-                    </label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      error={confirmPassword && password !== confirmPassword ? "Passwords do not match" : undefined}
-                      success={!!confirmPassword && password === confirmPassword}
-                      autoComplete="new-password"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Phone & Terms */}
-              {step === 3 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-2">
-                    <label htmlFor="phone" className="text-sm font-medium">
-                      Phone Number (Optional)
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+44 7XXX XXXXXX"
-                        className="pl-10"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        autoComplete="tel"
-                        autoFocus
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      For account recovery and 2FA via SMS
-                    </p>
-                  </div>
-
-                  <div className="flex items-start space-x-2">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      checked={agreedToTerms}
-                      onChange={(e) => setAgreedToTerms(e.target.checked)}
-                      className="mt-1 h-4 w-4 rounded border-input"
-                      required
-                    />
-                    <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
-                      I agree to BitCurrent's{" "}
-                      <Link href="/legal/terms" target="_blank" className="text-primary hover:underline">
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link href="/legal/privacy" target="_blank" className="text-primary hover:underline">
-                        Privacy Policy
-                      </Link>
-                    </label>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                    <p className="text-sm font-medium">Account Summary:</p>
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-buy" />
-                        Email: {email}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-buy" />
-                        Password: {password.length} characters
-                      </div>
-                      {phone && (
-                        <div className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-buy" />
-                          Phone: {phone}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-
-            <CardFooter className="flex flex-col gap-4">
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={
-                  (step === 1 && (!emailValid || !email)) ||
-                  (step === 2 && (!!passwordError || !confirmPassword || password !== confirmPassword)) ||
-                  (step === 3 && !agreedToTerms) ||
-                  loading
-                }
-                loading={loading}
-              >
-                {step < 3 ? (
-                  <>
-                    Continue
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                ) : (
-                  "Create Account"
+                {errors.email && (
+                  <p className="text-xs text-danger">{errors.email.message}</p>
                 )}
-              </Button>
+              </div>
+            </motion.div>
+          )}
 
-              {step > 1 && (
+          {/* Step 2 - Password */}
+          {currentStep === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-4"
+            >
+              {/* Email display */}
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{email}</span>
+                </div>
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setStep(step - 1)}
-                  className="w-full"
+                  size="sm"
+                  onClick={() => setCurrentStep(1)}
+                  className="h-auto p-1"
                 >
-                  Back
+                  Edit
                 </Button>
+              </div>
+
+              {/* Password */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Create Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    className={cn(
+                      "pl-10 pr-10 h-12 bg-background/50",
+                      errors.password && "border-danger"
+                    )}
+                    {...register("password")}
+                    autoComplete="new-password"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Password strength meter */}
+              {passwordStrength && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Password strength</span>
+                    <span 
+                      className="font-semibold capitalize"
+                      style={{ color: passwordStrength.color }}
+                    >
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${passwordStrength.score}%` }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: passwordStrength.color }}
+                    />
+                  </div>
+                </div>
               )}
 
-              <p className="text-sm text-muted-foreground text-center">
-                Already have an account?{" "}
-                <Link href="/auth/login" className="text-primary hover:underline font-medium">
-                  Sign in
-                </Link>
-              </p>
-            </CardFooter>
-          </form>
-        </Card>
-      </main>
-    </div>
+              {/* Requirements checklist */}
+              {password && (
+                <div className="space-y-2 p-3 bg-muted/20 rounded-lg">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">
+                    Password requirements:
+                  </p>
+                  {passwordRequirements.map((req, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center gap-2 text-xs"
+                    >
+                      {req.met ? (
+                        <Check className="h-3 w-3 text-success" />
+                      ) : (
+                        <X className="h-3 w-3 text-muted-foreground" />
+                      )}
+                      <span className={req.met ? "text-success" : "text-muted-foreground"}>
+                        {req.label}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* Terms */}
+              <div className="flex items-start gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  {...register("acceptTerms")}
+                  className="mt-1 h-4 w-4 rounded border-input"
+                />
+                <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed">
+                  I agree to BitCurrent's{" "}
+                  <Link href="/legal/terms" target="_blank" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/legal/privacy" target="_blank" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+              {errors.acceptTerms && (
+                <p className="text-xs text-danger">{errors.acceptTerms.message}</p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Action buttons */}
+        <div className="space-y-3 pt-4">
+          {currentStep < 2 ? (
+            <Button
+              type="button"
+              size="lg"
+              className="w-full h-12"
+              onClick={handleNextStep}
+              disabled={!email || !!errors.email}
+            >
+              Continue
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full h-12"
+              disabled={isSubmitting || !acceptTerms}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Creating account...
+                </span>
+              ) : (
+                "Create Account"
+              )}
+            </Button>
+          )}
+
+          {currentStep > 1 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="w-full"
+              onClick={() => setCurrentStep(currentStep - 1)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          )}
+        </div>
+
+        {/* Sign in link */}
+        <div className="text-center pt-4">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link
+              href="/auth/login"
+              className="text-primary hover:text-primary/80 font-semibold"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </form>
+    </AuthLayout>
   )
 }
+

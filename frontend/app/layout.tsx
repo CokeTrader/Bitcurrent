@@ -1,12 +1,23 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Sora, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Header } from "@/components/layout/header";
 
-const inter = Inter({ 
+// Sora - Modern, unique, geometric (used by top fintech)
+const sora = Sora({ 
   subsets: ["latin"],
-  variable: '--font-inter',
+  variable: '--font-sora',
   display: 'swap',
+  weight: ['300', '400', '500', '600', '700', '800'],
+});
+
+// Space Grotesk - Distinctive, tech-forward (Stripe, Linear)
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -81,7 +92,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${sora.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
       <head>
         {/* Structured Data for LLMs and Search Engines */}
         <script
@@ -92,12 +103,17 @@ export default function RootLayout({
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="googlebot" content="index, follow" />
         <meta name="bingbot" content="index, follow" />
+        {/* Metadata Base for production */}
+        <link rel="canonical" href="https://bitcurrent.co.uk" />
       </head>
-      <body className={inter.className}>
+      <body className={sora.className}>
         <a href="#main-content" className="skip-to-main">
           Skip to main content
         </a>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   );

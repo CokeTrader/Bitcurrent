@@ -1,0 +1,45 @@
+{
+  "Changes": [
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "_b728130a4f3c6a3377e584c92a61e3c4.bitcurrent.co.uk.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "_5d5548249f4e33a603d9bd5325ec92c6.xlfgrmvvlj.acm-validations.aws."
+          }
+        ]
+      }
+    },
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "_114246a9e7dce3e9b0865c20fe69274a.api.bitcurrent.co.uk.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "_575319326d7a830910badfcd387baec0.xlfgrmvvlj.acm-validations.aws."
+          }
+        ]
+      }
+    },
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "_9a6680113080f33fa6543f8b5a4b027f.www.bitcurrent.co.uk.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "_84c3f22600d3bf77bfac4ba0df98d981.xlfgrmvvlj.acm-validations.aws."
+          }
+        ]
+      }
+    }
+  ]
+}
+
+
