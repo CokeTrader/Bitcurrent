@@ -41,7 +41,7 @@ export default function LoginPagePremium() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      // Mock API call
+      // API call to backend
       const { apiClient } = await import("@/lib/api/client")
       const response = await apiClient.login(data.email, data.password)
       
@@ -57,12 +57,46 @@ export default function LoginPagePremium() {
       // Store user preference
       if (data.rememberMe && typeof window !== 'undefined') {
         localStorage.setItem('remember_email', data.email)
+      } else if (typeof window !== 'undefined') {
+        localStorage.removeItem('remember_email')
       }
       
       router.push("/dashboard")
     } catch (error: any) {
-      toast.error("Sign in failed", {
-        description: error.message || "Invalid email or password"
+      console.error("Login error:", error)
+      
+      // Show specific error message based on error type
+      let errorTitle = "Sign in failed"
+      let errorDescription = "Please check your credentials and try again"
+      
+      if (error.response) {
+        // Backend returned an error response
+        const status = error.response.status
+        const message = error.response.data?.message || error.response.data?.error
+        
+        if (status === 401 || message?.includes('Invalid credentials') || message?.includes('Unauthorized')) {
+          errorTitle = "Invalid credentials"
+          errorDescription = "The email or password you entered is incorrect. Please try again."
+        } else if (status === 404) {
+          errorTitle = "Account not found"
+          errorDescription = "No account exists with this email address. Please register first."
+        } else if (status === 403) {
+          errorTitle = "Account locked"
+          errorDescription = "Your account has been locked. Please contact support."
+        } else if (status >= 500) {
+          errorTitle = "Server error"
+          errorDescription = "Our servers are experiencing issues. Please try again later."
+        } else if (message) {
+          errorDescription = message
+        }
+      } else if (error.request) {
+        // Network error - no response received
+        errorTitle = "Network error"
+        errorDescription = "Unable to connect to the server. Please check your internet connection."
+      }
+      
+      toast.error(errorTitle, {
+        description: errorDescription
       })
     }
   }

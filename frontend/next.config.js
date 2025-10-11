@@ -3,6 +3,16 @@ const nextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
   
+  // API Proxy for backend communication
+  async rewrites() {
+    return [
+      {
+        source: '/api/v1/:path*',
+        destination: 'http://aa566433839ec4bfe8113014ed98d8b9-1852355696.eu-west-2.elb.amazonaws.com/api/v1/:path*',
+      },
+    ]
+  },
+  
   // Enable PWA
   async headers() {
     return [

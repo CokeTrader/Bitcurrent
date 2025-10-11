@@ -1,6 +1,16 @@
 import * as React from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | BitCurrent Exchange - Data Protection & GDPR',
+  description: 'BitCurrent privacy policy. Learn how we protect your personal data, comply with GDPR, and handle your information securely.',
+  keywords: ['privacy policy', 'data protection', 'gdpr compliance'],
+  alternates: {
+    canonical: 'https://bitcurrent.co.uk/legal/privacy',
+  },
+}
 
 export default function PrivacyPolicyPage() {
   return (
@@ -150,6 +160,9 @@ export default function PrivacyPolicyPage() {
     </div>
   )
 }
+
+
+
 
 
 

@@ -6,6 +6,13 @@ User-agent: *
 Allow: /
 Allow: /markets
 Allow: /trade/*
+Allow: /staking
+Allow: /blog
+Allow: /blog/*
+Allow: /faq
+Allow: /about
+Allow: /fees
+Allow: /security
 Allow: /auth/login
 Allow: /auth/register
 Allow: /legal/*
@@ -15,6 +22,12 @@ Disallow: /dashboard
 Disallow: /account/*
 Disallow: /api/*
 Disallow: /admin/*
+Disallow: /settings
+Disallow: /deposit
+Disallow: /withdraw
+Disallow: /wallets
+Disallow: /kyc
+Disallow: /tax
 
 # Specific AI Bot Configurations
 # OpenAI (GPT)

@@ -4,76 +4,190 @@
   <!-- Homepage -->
   <url>
     <loc>https://bitcurrent.co.uk/</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   
-  <!-- Markets Overview -->
+  <!-- Main Pages -->
   <url>
     <loc>https://bitcurrent.co.uk/markets</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   
-  <!-- Trading Pairs -->
+  <url>
+    <loc>https://bitcurrent.co.uk/staking</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Information Pages (High SEO Value) -->
+  <url>
+    <loc>https://bitcurrent.co.uk/blog</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/faq</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/about</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/fees</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/security</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Trading Pairs (High Priority) -->
   <url>
     <loc>https://bitcurrent.co.uk/trade/BTC-GBP</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <url>
     <loc>https://bitcurrent.co.uk/trade/ETH-GBP</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>hourly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   
   <url>
     <loc>https://bitcurrent.co.uk/trade/BNB-GBP</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
     <loc>https://bitcurrent.co.uk/trade/SOL-GBP</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/trade/XRP-GBP</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/trade/ADA-GBP</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Blog Posts (SEO Content) -->
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/how-to-buy-bitcoin-uk-2025-guide</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/uk-crypto-tax-guide-2025</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/best-crypto-exchanges-uk-2025</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/crypto-staking-guide-uk</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/ethereum-staking-uk-guide</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/is-crypto-safe-security-guide</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/blog/crypto-fees-guide-uk</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <!-- Authentication Pages -->
   <url>
     <loc>https://bitcurrent.co.uk/auth/login</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
     <loc>https://bitcurrent.co.uk/auth/register</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
   
   <!-- Legal Pages -->
   <url>
     <loc>https://bitcurrent.co.uk/legal/terms</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.4</priority>
   </url>
   
   <url>
     <loc>https://bitcurrent.co.uk/legal/privacy</loc>
-    <lastmod>2025-10-10</lastmod>
+    <lastmod>2025-10-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.4</priority>
+  </url>
+  
+  <url>
+    <loc>https://bitcurrent.co.uk/legal/risk-disclosure</loc>
+    <lastmod>2025-10-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   
 </urlset>

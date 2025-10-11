@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils"
 const publicNavLinks = [
   { href: "/markets", label: "Markets" },
   { href: "/trade/BTC-GBP", label: "Trade" },
+  { href: "/staking", label: "Staking" },
+  { href: "/blog", label: "Learn" },
 ]
 
 // Protected navigation (for logged-in users)
@@ -21,8 +23,7 @@ const protectedNavLinks = [
   { href: "/markets", label: "Markets" },
   { href: "/trade/BTC-GBP", label: "Trade" },
   { href: "/dashboard", label: "Portfolio" },
-  { href: "/deposit", label: "Deposit" },
-  { href: "/withdraw", label: "Withdraw" },
+  { href: "/staking", label: "Staking" },
   { href: "/tax", label: "Tax" },
 ]
 
@@ -37,12 +38,22 @@ export function Header() {
   
   useEffect(() => {
     setMounted(true)
-    // Check for auth token
+    // Check for auth token in both cookie and localStorage
     if (typeof window !== 'undefined') {
-      const token = document.cookie.includes('session_token')
-      setIsLoggedIn(token)
+      const hasCookie = document.cookie.includes('session_token')
+      const hasLocalStorage = localStorage.getItem('token') !== null
+      setIsLoggedIn(hasCookie || hasLocalStorage)
     }
   }, [])
+  
+  // Re-check auth state when pathname changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasCookie = document.cookie.includes('session_token')
+      const hasLocalStorage = localStorage.getItem('token') !== null
+      setIsLoggedIn(hasCookie || hasLocalStorage)
+    }
+  }, [pathname])
 
   const navLinks = isLoggedIn ? protectedNavLinks : publicNavLinks
 

@@ -2,6 +2,16 @@ import * as React from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle } from "lucide-react"
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | BitCurrent Exchange - UK Crypto Trading',
+  description: 'BitCurrent Exchange terms of service. FCA compliance, user agreements, and legal terms for cryptocurrency trading in the UK.',
+  keywords: ['bitcurrent terms', 'crypto exchange terms', 'terms of service'],
+  alternates: {
+    canonical: 'https://bitcurrent.co.uk/legal/terms',
+  },
+}
 
 export default function TermsOfServicePage() {
   return (
@@ -173,6 +183,9 @@ export default function TermsOfServicePage() {
     </div>
   )
 }
+
+
+
 
 
 

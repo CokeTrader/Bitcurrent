@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -48,10 +49,22 @@ const itemVariants = {
 export default function HomePage() {
   const { data: tickerData } = useTickerData()
   const [mounted, setMounted] = React.useState(false)
+  const router = useRouter()
 
+  // Check if user is logged in and redirect to dashboard
   React.useEffect(() => {
     setMounted(true)
-  }, [])
+    
+    // If user is logged in, redirect to dashboard
+    if (typeof window !== 'undefined') {
+      const hasCookie = document.cookie.includes('session_token')
+      const hasLocalStorage = localStorage.getItem('token') !== null
+      
+      if (hasCookie || hasLocalStorage) {
+        router.push('/dashboard')
+      }
+    }
+  }, [router])
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">

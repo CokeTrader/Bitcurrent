@@ -1,8 +1,13 @@
 // BitCurrent API Client
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-// Use relative URL for production (routed via Ingress), localhost for dev
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '' : 'http://localhost:8080');
+// Use environment variable or default behavior:
+// - Production: Empty string (uses Next.js proxy via rewrites)
+// - Development: localhost:8080
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+    ? '' // Use Next.js API proxy (configured in next.config.js rewrites)
+    : 'http://localhost:8080');
 
 class APIClient {
   private client: AxiosInstance;
