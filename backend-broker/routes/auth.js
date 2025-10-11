@@ -1,6 +1,8 @@
 // Authentication routes
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
+const zxcvbn = require('zxcvbn');
 const { query } = require('../config/database');
 const { generateToken, generateRefreshToken } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
@@ -13,7 +15,12 @@ const router = express.Router();
  */
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    let { email, password, firstName, lastName } = req.body;
+    
+    // Input sanitization
+    email = validator.trim(email || '');
+    firstName = firstName ? validator.escape(validator.trim(firstName)) : null;
+    lastName = lastName ? validator.escape(validator.trim(lastName)) : null;
     
     // Validation
     if (!email || !password) {
@@ -23,10 +30,27 @@ router.post('/register', async (req, res) => {
       });
     }
     
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
+    }
+    
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
         error: 'Password must be at least 8 characters'
+      });
+    }
+    
+    // Password strength check (zxcvbn score: 0-4, require 3+)
+    const passwordStrength = zxcvbn(password);
+    if (passwordStrength.score < 3) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password is too weak. Try adding numbers, symbols, and mixing cases.',
+        suggestions: passwordStrength.feedback.suggestions
       });
     }
     

@@ -21,19 +21,60 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.alpaca.markets", "https://paper-api.alpaca.markets"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" }
+}));
+
+// HTTPS redirect in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+    } else {
+      next();
+    }
+  });
+}
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Rate limiting
+// Rate limiting - General API
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later'
 });
 app.use('/api/', limiter);
+
+// Stricter rate limiting for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per 15 minutes
+  message: 'Too many authentication attempts. Please try again in 15 minutes.',
+  skipSuccessfulRequests: true // Only count failed attempts
+});
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
 
 // Body parsing middleware
 app.use(express.json());
@@ -84,12 +125,28 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  // Log full error details for debugging
+  console.error('Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Send safe error response (no stack traces in production)
+  const errorMessage = process.env.NODE_ENV === 'production'
+    ? 'An error occurred. Please try again or contact support if the problem persists.'
+    : err.message || 'Internal server error';
   
   res.status(err.status || 500).json({
     success: false,
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    error: errorMessage,
+    ...(process.env.NODE_ENV === 'development' && { 
+      stack: err.stack,
+      details: err
+    })
   });
 });
 
