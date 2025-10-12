@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposit Confirmed</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background: linear-gradient(135deg, #16a34a 0%, #10b981 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 10px 10px 0 0;
+      text-align: center;
+    }
+    .content {
+      background: #f9fafb;
+      padding: 30px;
+      border-radius: 0 0 10px 10px;
+    }
+    .amount-box {
+      background: white;
+      border: 2px solid #16a34a;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .amount {
+      font-size: 36px;
+      font-weight: bold;
+      color: #16a34a;
+      margin: 10px 0;
+    }
+    .button {
+      display: inline-block;
+      background: #16a34a;
+      color: white;
+      padding: 12px 30px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>✅ Deposit Confirmed!</h1>
+    <p>Your funds are ready to trade</p>
+  </div>
+  
+  <div class="content">
+    <h2>Hi {{name}},</h2>
+    
+    <p>Great news! Your deposit has been successfully processed and added to your BitCurrent account.</p>
+    
+    <div class="amount-box">
+      <div style="color: #6b7280; font-size: 14px;">Deposited Amount</div>
+      <div class="amount">£{{amount}}</div>
+      <div style="color: #10b981; font-size: 14px;">✓ Available to trade immediately</div>
+    </div>
+    
+    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0;">Transaction Details:</h3>
+      <div class="info-row">
+        <span style="color: #6b7280;">Transaction ID:</span>
+        <span style="font-weight: 600;">{{transactionId}}</span>
+      </div>
+      <div class="info-row">
+        <span style="color: #6b7280;">Date & Time:</span>
+        <span style="font-weight: 600;">{{timestamp}}</span>
+      </div>
+      <div class="info-row">
+        <span style="color: #6b7280;">Payment Method:</span>
+        <span style="font-weight: 600;">Stripe (Card)</span>
+      </div>
+      <div class="info-row">
+        <span style="color: #6b7280;">Status:</span>
+        <span style="color: #10b981; font-weight: 600;">✓ Completed</span>
+      </div>
+    </div>
+    
+    <center>
+      <a href="https://bitcurrent.vercel.app/trade/BTC-GBP" class="button">
+        Start Trading Bitcoin →
+      </a>
+    </center>
+    
+    <h3>What you can trade now:</h3>
+    <ul>
+      <li><strong>Bitcoin (BTC)</strong> - Currently £{{btcPrice}}</li>
+      <li><strong>Ethereum (ETH)</strong> - Currently £{{ethPrice}}</li>
+      <li><strong>Solana (SOL)</strong> - Currently £{{solPrice}}</li>
+      <li>+ 5 more cryptocurrencies</li>
+    </ul>
+    
+    <p style="background: #fef3c7; border-left: 4px solid #fbbf24; padding: 15px; margin: 20px 0;">
+      <strong>💡 Pro tip:</strong> Set price alerts to get notified when your favorite crypto reaches your target price!
+    </p>
+    
+    <p style="margin-top: 30px;">
+      Questions? Reply to this email or visit our 
+      <a href="https://bitcurrent.vercel.app/faq">FAQ page</a>.
+    </p>
+    
+    <p>
+      Happy trading! 🚀<br>
+      <strong>The BitCurrent Team</strong>
+    </p>
+  </div>
+  
+  <div class="footer">
+    <p>
+      BitCurrent | UK Crypto Broker<br>
+      <a href="https://bitcurrent.vercel.app">bitcurrent.co.uk</a>
+    </p>
+  </div>
+</body>
+</html>
+
