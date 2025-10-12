@@ -1,5 +1,6 @@
-// BitCurrent Backend - Simplified Broker Model
+// BitCurrent Backend - Simplified Broker Model  
 // PostgreSQL connection via Railway DATABASE_URL environment variable
+// Google OAuth environment variables required: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
