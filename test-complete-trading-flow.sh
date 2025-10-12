@@ -47,7 +47,7 @@ echo "$REGISTER_RESPONSE" | jq .
 
 if echo "$REGISTER_RESPONSE" | grep -q "\"success\":true"; then
   TOKEN=$(echo "$REGISTER_RESPONSE" | jq -r '.token')
-  USER_ID=$(echo "$REGISTER_RESPONSE" | jq -r '.userId')
+  USER_ID=$(echo "$REGISTER_RESPONSE" | jq -r '.user.id')
   echo -e "${GREEN}✅ User registered successfully${NC}"
   echo "Token: ${TOKEN:0:20}..."
   echo "User ID: $USER_ID"
@@ -68,12 +68,21 @@ echo -e "${YELLOW}ℹ️  User should have zero balance initially${NC}"
 echo ""
 sleep 2
 
-# Step 4: Grant Paper Funds
-echo "🎁 Step 4: Grant Paper Trading Funds"
-PAPER_FUNDS=$(curl -s -X POST "$API_URL/paper/grant" \
-  -H "Authorization: Bearer $TOKEN" \
+# Step 4: Login as Admin and Grant Paper Funds
+echo "🎁 Step 4: Grant Paper Trading Funds (via Admin)"
+# Login as admin first
+ADMIN_TOKEN=$(curl -s -X POST "$API_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"amount": 10000}')
+  -d '{"email":"admin@bitcurrent.co.uk","password":"AdminSecure123!"}' | jq -r '.token')
+
+echo "Admin logged in, granting funds..."
+
+# Extract USER_ID from token response (we need to parse it differently)
+# For now, we'll use the user ID we got from registration
+PAPER_FUNDS=$(curl -s -X POST "$API_URL/admin/grant-paper-funds" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"userId\": \"$USER_ID\", \"amount\": 10000}")
 
 echo "$PAPER_FUNDS" | jq .
 
@@ -103,16 +112,14 @@ echo ""
 sleep 2
 
 # Step 6: Place Buy Order (BTC)
-echo "📈 Step 6: Place BUY Order (0.001 BTC)"
+echo "📈 Step 6: Place BUY Order (£100 worth of BTC)"
 BUY_ORDER=$(curl -s -X POST "$API_URL/orders" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "base": "BTC",
-    "quote": "GBP",
+    "symbol": "BTC-GBP",
     "side": "BUY",
-    "orderType": "MARKET",
-    "quoteAmount": "100"
+    "amount": 100
   }')
 
 echo "$BUY_ORDER" | jq .
