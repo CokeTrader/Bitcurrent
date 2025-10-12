@@ -6,6 +6,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Header } from "@/components/layout/header";
 import { FCAWarningBanner } from "@/components/compliance/FCAWarningBanner";
+import { OrganizationSchema, WebSiteSchema, FinancialServiceSchema } from "@/components/seo/StructuredData";
 
 // Sora - Modern, unique, geometric (used by top fintech)
 const sora = Sora({ 

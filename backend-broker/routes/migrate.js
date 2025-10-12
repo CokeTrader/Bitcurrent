@@ -134,5 +134,47 @@ router.post('/add-admin-column', async (req, res) => {
   }
 });
 
+// Add paper_trading_accounts table
+router.post('/add-paper-trading-table', async (req, res) => {
+  try {
+    console.log('🔄 Creating paper_trading_accounts table...');
+    
+    // Create paper_trading_accounts table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS paper_trading_accounts (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(100) NOT NULL,
+        initial_balance NUMERIC(20, 2) NOT NULL CHECK (initial_balance >= 100 AND initial_balance <= 100000),
+        current_balance NUMERIC(20, 2) NOT NULL DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        reset_at TIMESTAMP,
+        deleted_at TIMESTAMP
+      );
+    `);
+    console.log('✅ paper_trading_accounts table created');
+    
+    // Create indexes
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_paper_accounts_user_id ON paper_trading_accounts(user_id);
+      CREATE INDEX IF NOT EXISTS idx_paper_accounts_active ON paper_trading_accounts(user_id, is_active) WHERE is_active = TRUE;
+    `);
+    console.log('✅ Indexes created');
+    
+    res.json({
+      success: true,
+      message: 'paper_trading_accounts table created successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 
