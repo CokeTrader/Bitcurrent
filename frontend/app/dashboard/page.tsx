@@ -37,8 +37,16 @@ export default function DashboardPagePro() {
 
   // Check if this is a new user (first time on dashboard)
   React.useEffect(() => {
+    // Only show tour for truly new users (no trading history, no deposits)
     const hasSeenTour = localStorage.getItem('hasSeenTour')
-    if (!hasSeenTour) {
+    const hasTradingHistory = localStorage.getItem('hasTradingHistory')
+    const hasDeposits = localStorage.getItem('hasDeposits')
+    
+    // Show tour only if:
+    // 1. Never seen tour before AND
+    // 2. No trading history AND 
+    // 3. No deposits (truly new user)
+    if (!hasSeenTour && !hasTradingHistory && !hasDeposits) {
       setShowTour(true)
     }
   }, [])
