@@ -36,7 +36,7 @@ type SignupFormData = z.infer<typeof signupSchema>
 const steps = [
   { id: 1, name: 'Email', description: 'Enter your email' },
   { id: 2, name: 'Password', description: 'Secure your account' },
-  { id: 3, name: 'Verify', description: 'Check your inbox' }
+  { id: 3, name: 'Done!', description: 'Claim your £10 bonus' }
 ]
 
 export default function RegisterPagePremium() {

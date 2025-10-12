@@ -100,13 +100,13 @@ export default function HomePage() {
 
             <motion.h1 
               variants={itemVariants}
-              className="text-7xl md:text-8xl font-bold tracking-tight mb-8 font-display"
+              className="text-6xl md:text-7xl font-bold tracking-tight mb-8 font-display"
             >
-              <span className="bg-gradient-to-r from-primary via-success to-primary bg-clip-text text-transparent animate-gradient">
-                Trade Crypto
+              <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 bg-clip-text text-transparent">
+                Save 6x on Crypto Fees
               </span>
               <br />
-              <span className="text-foreground">Like a Pro</span>
+              <span className="text-foreground text-5xl md:text-6xl">Trade Bitcoin for 0.25%</span>
             </motion.h1>
 
             <motion.p 
@@ -122,12 +122,11 @@ export default function HomePage() {
               className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
             >
               <Link href="/auth/register">
-                <Button size="xl" className="group relative overflow-hidden">
-                  <span className="relative z-10 flex items-center gap-2">
-                    Start Trading Free
+                <Button size="xl" className="group relative overflow-hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all">
+                  <span className="relative z-10 flex items-center gap-2 font-bold">
+                    Get £10 Free - Start Now
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-success opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
               </Link>
               <Link href="/markets">
