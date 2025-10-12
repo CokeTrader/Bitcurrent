@@ -20,6 +20,15 @@ router.post('/run', async (req, res) => {
     await pool.query(schema);
     console.log('✅ Schema executed successfully!');
     
+    // Add 2FA columns if they don't exist
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(20) DEFAULT 'local';
+    `);
+    console.log('✅ 2FA and OAuth columns added');
+    
     // Verify tables
     const tablesResult = await pool.query(`
       SELECT table_name 
