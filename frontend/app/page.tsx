@@ -92,9 +92,9 @@ export default function HomePage() {
             animate="visible"
           >
             <motion.div variants={itemVariants} className="mb-6">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6">
-                <Sparkles className="h-4 w-4" />
-                Now Live - Beta Access Available
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-sm font-semibold text-green-600 dark:text-green-400 mb-6 shadow-lg">
+                <Sparkles className="h-4 w-4 animate-pulse" />
+                🚀 Live Now - Join 100+ Early Users
               </span>
             </motion.div>
 
@@ -113,8 +113,8 @@ export default function HomePage() {
               variants={itemVariants}
               className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
             >
-              The UK's most advanced cryptocurrency exchange. Lightning-fast execution, 
-              bank-grade security, and tools that give you an edge.
+              UK cryptocurrency broker with <span className="text-green-600 dark:text-green-400 font-semibold">0.25% fees</span> — 6x cheaper than Coinbase. 
+              Instant GBP deposits via Stripe. Start trading in 2 minutes.
             </motion.p>
 
             <motion.div 
@@ -145,7 +145,7 @@ export default function HomePage() {
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-success" />
-                <span>FCA Registered (Pending)</span>
+                <span>UK Crypto Broker</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-success" />
