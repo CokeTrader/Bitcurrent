@@ -105,7 +105,9 @@ router.post('/accounts', async (req, res) => {
     console.error('Create paper account error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create paper trading account'
+      error: 'Failed to create paper trading account',
+      details: error.message,
+      code: error.code
     });
   }
 });
