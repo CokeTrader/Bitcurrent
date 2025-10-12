@@ -89,6 +89,9 @@ router.post('/', async (req, res) => {
       balanceChange = tradeResult.quoteAmount - tradeResult.feeAmount; // Add GBP minus fee
     }
     
+    // Create order ID
+    const orderId = uuidv4();
+    
     // Update paper account balance and create order record
     await transaction(async (client) => {
       // Update paper account balance
@@ -100,7 +103,6 @@ router.post('/', async (req, res) => {
       );
       
       // Create order record
-      const orderId = uuidv4();
       await client.query(
         `INSERT INTO orders (
           id, user_id, symbol, side, type, amount, quote_amount, 
@@ -120,8 +122,6 @@ router.post('/', async (req, res) => {
           `paper_${paperAccountId}_${Date.now()}`
         ]
       );
-      
-      return orderId;
     });
     
     // Get updated balance
