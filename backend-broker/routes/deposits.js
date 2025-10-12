@@ -3,11 +3,53 @@ const express = require('express');
 const { query } = require('../config/database');
 const { verifyToken } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
+const stripeService = require('../services/stripe-service');
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(verifyToken);
+
+/**
+ * POST /deposits/stripe-checkout
+ * Create Stripe Checkout session for instant deposit
+ */
+router.post('/stripe-checkout', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { amount } = req.body;
+    
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum < 10) {
+      return res.status(400).json({
+        success: false,
+        error: 'Minimum deposit is £10'
+      });
+    }
+    
+    // Create Stripe Checkout session
+    const baseUrl = process.env.FRONTEND_URL || 'https://bitcurrent.vercel.app';
+    const session = await stripeService.createDepositCheckoutSession(
+      userId,
+      amountNum,
+      `${baseUrl}/dashboard?deposit=success`,
+      `${baseUrl}/deposit?cancelled=true`
+    );
+    
+    res.json({
+      success: true,
+      sessionId: session.sessionId,
+      url: session.url,
+      depositId: session.depositId
+    });
+  } catch (error) {
+    console.error('Create Stripe checkout error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to create deposit session'
+    });
+  }
+});
 
 /**
  * POST /deposits

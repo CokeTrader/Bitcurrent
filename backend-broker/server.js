@@ -24,6 +24,7 @@ const adminDashboardRoutes = require('./routes/admin-dashboard');
 const migrateRoutes = require('./routes/migrate');
 const paperTradingRoutes = require('./routes/paper-trading');
 const paperOrdersRoutes = require('./routes/paper-orders');
+const stripeWebhooksRoutes = require('./routes/stripe-webhooks');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -159,6 +160,9 @@ app.get('/health', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// Stripe webhooks (MUST be before express.json() middleware for raw body)
+app.use('/api/v1/stripe-webhooks', stripeWebhooksRoutes);
 
 // API routes
 app.use('/api/v1/auth', authRoutes);

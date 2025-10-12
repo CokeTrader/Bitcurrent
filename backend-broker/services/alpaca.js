@@ -60,18 +60,65 @@ async function getPrice(symbol) {
     // Convert to Alpaca format (BTC-GBP -> BTCUSD)
     const alpacaSymbol = toAlpacaSymbol(symbol);
     
-    // Get latest crypto trade from Coinbase exchange
-    const latestTrade = await alpaca.getLatestCryptoTrade(alpacaSymbol, 'CBSE');
-    const priceUSD = parseFloat(latestTrade.Price);
+    console.log(`[Alpaca] Getting price for ${symbol} (${alpacaSymbol})`);
     
-    // Convert USD to GBP (hardcoded for now, should use real FX rate)
-    const usdToGbp = 0.79; // 1 USD = 0.79 GBP (approximate)
+    // Try multiple methods to get price
+    let priceUSD;
+    
+    try {
+      // Method 1: Try Alpaca Data API v2 - Latest Crypto Quote
+      const quote = await alpaca.getCryptoQuote(alpacaSymbol, 'us');
+      priceUSD = parseFloat(quote.ap || quote.bp); // Ask price or Bid price
+      console.log(`[Alpaca] Got price via getCryptoQuote: $${priceUSD}`);
+    } catch (e1) {
+      console.log(`[Alpaca] getCryptoQuote failed: ${e1.message}, trying alternative...`);
+      
+      try {
+        // Method 2: Try Latest Trade
+        const latestTrade = await alpaca.getLatestCryptoTrade(alpacaSymbol, 'us');
+        priceUSD = parseFloat(latestTrade.p || latestTrade.Price);
+        console.log(`[Alpaca] Got price via getLatestCryptoTrade: $${priceUSD}`);
+      } catch (e2) {
+        console.log(`[Alpaca] getLatestCryptoTrade failed: ${e2.message}, trying bars...`);
+        
+        // Method 3: Try Latest Bar (last resort)
+        const now = new Date();
+        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const bars = await alpaca.getCryptoBars(
+          alpacaSymbol,
+          {
+            start: yesterday.toISOString(),
+            end: now.toISOString(),
+            timeframe: '1Min',
+            limit: 1
+          },
+          'us'
+        );
+        
+        if (bars && bars[alpacaSymbol] && bars[alpacaSymbol].length > 0) {
+          priceUSD = parseFloat(bars[alpacaSymbol][0].c); // Close price
+          console.log(`[Alpaca] Got price via getCryptoBars: $${priceUSD}`);
+        } else {
+          throw new Error('No price data available from any Alpaca method');
+        }
+      }
+    }
+    
+    if (!priceUSD || isNaN(priceUSD)) {
+      throw new Error(`Invalid price received: ${priceUSD}`);
+    }
+    
+    // Convert USD to GBP (using realistic exchange rate)
+    const usdToGbp = 0.79; // 1 USD = 0.79 GBP (update this from a forex API ideally)
     const priceGBP = priceUSD * usdToGbp;
+    
+    console.log(`[Alpaca] Final price for ${symbol}: £${priceGBP.toFixed(2)} ($${priceUSD.toFixed(2)})`);
     
     return priceGBP;
   } catch (error) {
-    console.error(`Alpaca getPrice error for ${symbol}:`, error.message);
-    throw new Error(`Failed to get price for ${symbol}`);
+    console.error(`[Alpaca] getPrice error for ${symbol}:`, error.message);
+    console.error(`[Alpaca] Full error:`, error);
+    throw new Error(`Failed to get price for ${symbol}: ${error.message}`);
   }
 }
 
