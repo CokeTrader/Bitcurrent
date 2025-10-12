@@ -1,151 +1,209 @@
-# BitCurrent Backend - Broker Model
+# BitCurrent Backend API
 
-Simplified cryptocurrency exchange backend using the broker model with Binance as liquidity provider.
+**UK Crypto Broker** - Production-ready trading platform backend
 
-## Features
-
-✅ User authentication (JWT)
-✅ Market orders (BUY/SELL)
-✅ Balance tracking (multi-currency)
-✅ Manual deposit approval
-✅ Manual withdrawal approval
-✅ Admin panel for operations
-✅ Transaction history
-✅ Binance integration
-
-## Tech Stack
-
-- **Runtime**: Node.js 18+
-- **Framework**: Express.js
-- **Database**: PostgreSQL
-- **Liquidity**: Binance API
-- **Auth**: JWT + bcrypt
-
-## Setup
-
-### 1. Install Dependencies
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
 npm install
-```
 
-### 2. Configure Environment
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
+# Set environment variables (see .env.example)
 cp .env.example .env
-```
 
-Edit `.env` with your settings:
-- `DATABASE_URL`: PostgreSQL connection string
-- `BINANCE_API_KEY`: Your Binance API key
-- `BINANCE_API_SECRET`: Your Binance API secret
-- `JWT_SECRET`: Random secret for JWT signing
-
-### 3. Initialize Database
-
-```bash
-# Run schema migration
-psql $DATABASE_URL < database/schema.sql
-```
-
-### 4. Start Server
-
-```bash
-# Development
+# Run development server
 npm run dev
 
-# Production
+# Run production server
 npm start
 ```
 
-## API Endpoints
+## 📋 Environment Variables
+
+```env
+# Database
+DATABASE_URL=postgresql://...
+
+# Alpaca API (Trading)
+ALPACA_KEY_ID=your_key_here
+ALPACA_SECRET_KEY=your_secret_here
+ALPACA_BASE_URL=https://paper-api.alpaca.markets  # or live
+
+# Stripe (Payments)
+STRIPE_SECRET_KEY=sk_live_...  # Required for deposits
+STRIPE_WEBHOOK_SECRET=whsec_...  # Required for webhooks
+
+# JWT
+JWT_SECRET=your_secure_random_string
+
+# Frontend URL
+FRONTEND_URL=https://bitcurrent.vercel.app
+
+# Email (Optional)
+RESEND_API_KEY=re_...  # For transactional emails
+
+# Environment
+NODE_ENV=production
+PORT=3001
+```
+
+## 🏗️ Architecture
+
+```
+backend-broker/
+├── routes/          # API endpoints
+│   ├── auth.js      # Registration, login
+│   ├── orders.js    # Trading orders
+│   ├── deposits.js  # Deposit management
+│   ├── stripe-webhooks.js  # Payment webhooks
+│   └── health.js    # Health checks
+├── services/        # Business logic
+│   ├── alpaca.js    # Alpaca trading API
+│   └── stripe-service.js  # Stripe integration
+├── middleware/      # Express middleware
+│   ├── auth.js      # JWT authentication
+│   ├── cache.js     # Response caching
+│   ├── error-handler.js  # Error handling
+│   ├── rate-limiter.js   # Rate limiting
+│   └── security.js  # Security headers
+├── utils/           # Utilities
+│   ├── logger.js    # Winston logging
+│   └── email-service.js  # Email sending
+├── templates/       # Email templates
+│   └── emails/
+│       ├── welcome.html
+│       └── deposit-confirmed.html
+└── server.js        # Express app
+```
+
+## 📡 API Endpoints
 
 ### Authentication
-- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/register` - Create account
 - `POST /api/v1/auth/login` - Login
-- `POST /api/v1/auth/refresh` - Refresh token
-- `GET /api/v1/auth/me` - Get current user
+- `POST /api/v1/auth/verify-email` - Verify email
 
-### Orders
-- `GET /api/v1/orders/quote` - Get order quote
-- `POST /api/v1/orders` - Place market order
-- `GET /api/v1/orders` - Get order history
+### Trading
+- `GET /api/v1/markets` - Get all markets
+- `GET /api/v1/markets/:symbol/quote` - Get real-time quote
+- `POST /api/v1/orders` - Place order
+- `GET /api/v1/orders` - Get user orders
 - `GET /api/v1/orders/:id` - Get order details
 
-### Balances
-- `GET /api/v1/balances` - Get all balances
-- `GET /api/v1/balances/:currency` - Get specific balance
-- `GET /api/v1/balances/transactions/history` - Transaction history
-
-### Deposits
-- `POST /api/v1/deposits` - Create deposit request
+### Deposits & Withdrawals
+- `POST /api/v1/deposits/stripe-checkout` - Create Stripe checkout
 - `GET /api/v1/deposits` - Get deposit history
-- `GET /api/v1/deposits/:id` - Get deposit details
+- `POST /api/v1/withdrawals` - Request withdrawal
 
-### Withdrawals
-- `POST /api/v1/withdrawals` - Create withdrawal request
-- `GET /api/v1/withdrawals` - Get withdrawal history
-- `GET /api/v1/withdrawals/:id` - Get withdrawal details
-- `DELETE /api/v1/withdrawals/:id` - Cancel withdrawal
+### Account
+- `GET /api/v1/balance` - Get account balance
+- `GET /api/v1/portfolio` - Get portfolio
+- `PUT /api/v1/profile` - Update profile
 
-### Admin (requires admin auth)
-- `GET /api/v1/admin/deposits/pending` - Pending deposits
-- `POST /api/v1/admin/deposits/:id/approve` - Approve deposit
-- `POST /api/v1/admin/deposits/:id/reject` - Reject deposit
-- `GET /api/v1/admin/withdrawals/pending` - Pending withdrawals
-- `POST /api/v1/admin/withdrawals/:id/approve` - Approve withdrawal
-- `POST /api/v1/admin/withdrawals/:id/complete` - Complete withdrawal
-- `POST /api/v1/admin/withdrawals/:id/reject` - Reject withdrawal
-- `GET /api/v1/admin/users` - Get all users
-- `GET /api/v1/admin/stats` - Platform statistics
+### Webhooks
+- `POST /api/v1/stripe-webhooks` - Stripe payment webhooks
 
-## Deployment
+### Monitoring
+- `GET /health` - Basic health check
+- `GET /health/status` - Detailed system status
+- `GET /health/ready` - Readiness probe
+- `GET /health/live` - Liveness probe
 
-### Railway.app (Recommended)
+## 🔒 Security Features
 
-1. Sign up at https://railway.app
-2. Create new project
-3. Connect GitHub repository
-4. Add PostgreSQL database
-5. Set environment variables
-6. Deploy!
+- **Rate Limiting**: Prevents abuse (100 req/15min general, 5 req/15min auth)
+- **Helmet**: Security headers (CSP, XSS protection)
+- **CORS**: Configured for production domains
+- **JWT Auth**: Secure token-based authentication
+- **Input Sanitization**: XSS prevention
+- **Caching**: Reduces load on external APIs
 
-Cost: £15/month (includes database)
+## 🏃 Performance
+
+- **Response Caching**: 
+  - Prices: 5 seconds
+  - Market data: 1 minute
+  - User data: 5 minutes
+- **Connection Pooling**: PostgreSQL connection management
+- **Error Recovery**: Alpaca API fallback methods
+
+## 📊 Monitoring
+
+Health checks available at:
+- `/health` - Simple uptime check
+- `/health/status` - System metrics, cache stats, service status
+
+Logging:
+- **Winston** structured logging
+- Console output in development
+- JSON format in production
+
+## 🧪 Testing
+
+```bash
+# Test Stripe integration
+node scripts/test-stripe.js
+
+# Test database connection
+npm run test:db
+
+# Check API health
+curl http://localhost:3001/health
+```
+
+## 🚀 Deployment
+
+### Railway (Recommended)
+
+1. Connect GitHub repo
+2. Set environment variables
+3. Deploy automatically on push
 
 ### Manual Deployment
 
-1. Set up PostgreSQL database
-2. Run schema migrations
-3. Configure environment variables
-4. Start with `npm start`
-5. Use PM2 or systemd for process management
+```bash
+# Build (if needed)
+npm run build
 
-## Manual Operations (First 100 Users)
+# Start production server
+NODE_ENV=production npm start
+```
 
-### Approve Deposits
-1. User sends bank transfer with reference code
-2. Check your bank statement daily
-3. Match reference to deposit request
-4. Call `/api/v1/admin/deposits/:id/approve`
+## 📝 API Rate Limits
 
-### Process Withdrawals
-1. Approve withdrawal via API
-2. Process via Binance or bank transfer manually
-3. Get transaction ID
-4. Call `/api/v1/admin/withdrawals/:id/complete`
+- **General API**: 100 requests / 15 minutes
+- **Authentication**: 5 attempts / 15 minutes
+- **Trading**: 30 orders / minute
+- **Financial**: 10 transactions / hour
 
-## Security
+## 🆘 Troubleshooting
 
-- All passwords hashed with bcrypt
-- JWT for authentication
-- Rate limiting on all routes
-- Helmet for HTTP security headers
-- CORS configured for frontend only
-- SQL injection protection via parameterized queries
+### Alpaca Orders Failing
+- Check API keys are set correctly
+- Verify symbol format (BTC/USD not BTCGBP)
+- Check Alpaca account has paper trading enabled
+- Review logs for specific error messages
 
-## Support
+### Stripe Webhooks Not Working
+- Verify `STRIPE_WEBHOOK_SECRET` is set
+- Check webhook endpoint URL matches Railway domain
+- Test webhook with Stripe CLI: `stripe listen`
+
+### Database Connection Issues
+- Verify `DATABASE_URL` format
+- Check database is accessible from Railway
+- Review connection pool settings
+
+## 📚 Documentation
+
+- [Alpaca API Docs](https://alpaca.markets/docs/)
+- [Stripe API Docs](https://stripe.com/docs/api)
+- [Railway Docs](https://docs.railway.app/)
+
+## 🤝 Support
 
 Email: support@bitcurrent.co.uk
 
+## 📄 License
+
+Proprietary - BitCurrent Ltd.
