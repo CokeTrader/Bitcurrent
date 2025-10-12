@@ -1,101 +1,22 @@
-# BitCurrent Exchange - Robots.txt
-# Allow AI crawlers and search engines to access public content
-
-# Default rules for all bots
+# BitCurrent - UK Crypto Broker
 User-agent: *
 Allow: /
+
+# Priority pages for crawlers
+Sitemap: https://bitcurrent.vercel.app/sitemap.xml
+
+# High priority
+Allow: /
 Allow: /markets
+Allow: /auth/register
 Allow: /trade/*
-Allow: /staking
-Allow: /blog
-Allow: /blog/*
+
+# SEO targets
 Allow: /faq
 Allow: /about
 Allow: /fees
-Allow: /security
-Allow: /auth/login
-Allow: /auth/register
-Allow: /legal/*
 
-# Disallow private/sensitive pages
-Disallow: /dashboard
-Disallow: /account/*
-Disallow: /api/*
-Disallow: /admin/*
-Disallow: /settings
-Disallow: /deposit
-Disallow: /withdraw
-Disallow: /wallets
-Disallow: /kyc
-Disallow: /tax
-
-# Specific AI Bot Configurations
-# OpenAI (GPT)
-User-agent: GPTBot
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# Anthropic (Claude)
-User-agent: anthropic-ai
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# Claude (alternative user agent)
-User-agent: Claude-Web
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# Google AI (Gemini/Bard)
-User-agent: Google-Extended
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# Cohere
-User-agent: cohere-ai
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# Common Crawlers AI
-User-agent: CCBot
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# ChatGPT User (browsing)
-User-agent: ChatGPT-User
-Allow: /
-Allow: /markets
-Allow: /trade/*
-Allow: /legal/*
-Disallow: /dashboard
-Disallow: /account/*
-
-# Sitemap location (for crawlers)
-Sitemap: https://bitcurrent.co.uk/sitemap.xml
-
-# Crawl delay (be nice to our servers)
-Crawl-delay: 1
-
+# Block admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /dashboard/
