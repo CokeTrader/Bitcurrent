@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { AssetIcon } from "@/components/ui/asset-icon"
 import { PriceChange } from "@/components/ui/price-change"
+import { UrgencyBanner } from "@/components/ui/urgency-banner"
+import { SocialProof } from "@/components/ui/social-proof"
 import { useTickerData } from "@/hooks/use-market-data"
 import { 
   ArrowRight, 
@@ -91,6 +93,11 @@ export default function HomePage() {
             initial="hidden"
             animate="visible"
           >
+            {/* Social Proof - Above fold */}
+            <SocialProof />
+            
+            {/* Urgency Banner */}
+            <UrgencyBanner />
             <motion.div variants={itemVariants} className="mb-6">
               <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-sm font-semibold text-green-600 dark:text-green-400 mb-6 shadow-lg">
                 <Sparkles className="h-4 w-4 animate-pulse" />
