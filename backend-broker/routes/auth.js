@@ -3,11 +3,34 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const zxcvbn = require('zxcvbn');
+const passport = require('../config/passport');
 const { query } = require('../config/database');
 const { generateToken, generateRefreshToken } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
+
+// Google OAuth routes
+router.get('/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  session: false
+}));
+
+router.get('/google/callback', 
+  passport.authenticate('google', { 
+    session: false,
+    failureRedirect: '/auth/login?error=oauth_failed'
+  }),
+  (req, res) => {
+    // Generate JWT tokens
+    const token = generateToken(req.user.id, req.user.email);
+    const refreshToken = generateRefreshToken(req.user.id, req.user.email);
+    
+    // Redirect to frontend with tokens
+    const frontendUrl = process.env.FRONTEND_URL || 'https://bitcurrent-git-main-coketraders-projects.vercel.app';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}&refresh=${refreshToken}`);
+  }
+);
 
 /**
  * POST /auth/register
