@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { OrderBookEnhanced } from "@/components/trading/OrderBookEnhanced"
 import { TradeFormEnhanced } from "@/components/trading/TradeFormEnhanced"
@@ -19,7 +20,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,11 +32,27 @@ interface TradePageProps {
 }
 
 export default function TradePagePro({ params }: TradePageProps) {
+  const router = useRouter()
   const { symbol } = params
   const [baseAsset, quoteAsset] = symbol.split("-")
   const [isFavorite, setIsFavorite] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<"open" | "history" | "trades">("open")
   const [orderFormPrice, setOrderFormPrice] = React.useState<number | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true)
+  
+  // Check authentication on mount
+  React.useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window !== 'undefined') {
+        const hasCookie = document.cookie.includes('session_token')
+        const hasToken = localStorage.getItem('token') !== null
+        setIsAuthenticated(hasCookie || hasToken)
+        setIsCheckingAuth(false)
+      }
+    }
+    checkAuth()
+  }, [])
   
   // Import trading store for balance and order management
   const [tradingStore, setTradingStore] = React.useState<any>(null)
@@ -81,8 +99,46 @@ export default function TradePagePro({ params }: TradePageProps) {
     }
   }, [tradingStore, symbol])
 
+  // Show login prompt if not authenticated
+  if (!isCheckingAuth && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
+        >
+          <Card className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Lock className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Login Required</h2>
+            <p className="text-muted-foreground mb-6">
+              Please sign in to access the trading platform
+            </p>
+            <div className="flex gap-3">
+              <Button
+                className="flex-1"
+                onClick={() => router.push('/auth/login')}
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => router.push('/auth/register')}
+              >
+                Create Account
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+    )
+  }
+
   // Loading state while fetching price
-  if (!currentPrice) {
+  if (!currentPrice || isCheckingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <motion.div
