@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const slowDown = require('express-slow-down');
 require('dotenv').config();
 
 // Import routes
@@ -84,23 +85,44 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting - General API
+// DDoS Protection Layer 1: Speed limiter (slows down responses after threshold)
+const speedLimiter = slowDown({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  delayAfter: 50, // Allow 50 requests per 15 minutes at full speed
+  delayMs: 500 // Add 500ms delay per request above the threshold
+});
+app.use('/api/', speedLimiter);
+
+// DDoS Protection Layer 2: Hard rate limit
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later'
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // Block after 100 requests
+  message: 'Too many requests from this IP, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/', limiter);
 
-// Stricter rate limiting for authentication endpoints
+// DDoS Protection Layer 3: Aggressive auth protection
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per 15 minutes
+  max: 5, // Only 5 attempts per 15 minutes
   message: 'Too many authentication attempts. Please try again in 15 minutes.',
-  skipSuccessfulRequests: true // Only count failed attempts
+  skipSuccessfulRequests: true, // Only count failed attempts
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/register', authLimiter);
+
+// DDoS Protection Layer 4: Aggressive order placement protection
+const orderLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // Max 10 orders per minute
+  message: 'Too many orders. Please slow down.',
+  skipSuccessfulRequests: false
+});
+app.use('/api/v1/orders', orderLimiter);
 
 // Body parsing middleware
 app.use(express.json());
