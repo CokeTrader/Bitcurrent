@@ -549,20 +549,41 @@ router.post('/grant-paper-funds', async (req, res) => {
       });
     }
     
-    // Create or update GBP account with paper funds
-    await query(
-      `INSERT INTO accounts (user_id, currency, balance, available, reserved)
-       VALUES ($1, 'GBP', $2, $2, 0)
-       ON CONFLICT (user_id, currency) 
-       DO UPDATE SET balance = accounts.balance + $2, available = accounts.available + $2`,
-      [userId, amount]
+    // Get or create GBP account
+    let accountResult = await query(
+      `SELECT id, balance FROM accounts WHERE user_id = $1 AND currency = 'GBP'`,
+      [userId]
     );
     
-    // Log the paper fund grant
+    let accountId;
+    let balanceBefore = 0;
+    
+    if (accountResult.rows.length === 0) {
+      // Create new account
+      const newAccount = await query(
+        `INSERT INTO accounts (user_id, currency, balance, available, reserved)
+         VALUES ($1, 'GBP', $2, $2, 0) RETURNING id`,
+        [userId, amount]
+      );
+      accountId = newAccount.rows[0].id;
+      balanceBefore = 0;
+    } else {
+      // Update existing account
+      accountId = accountResult.rows[0].id;
+      balanceBefore = parseFloat(accountResult.rows[0].balance);
+      await query(
+        `UPDATE accounts SET balance = balance + $1, available = available + $1 WHERE id = $2`,
+        [amount, accountId]
+      );
+    }
+    
+    const balanceAfter = balanceBefore + amount;
+    
+    // Log the transaction
     await query(
-      `INSERT INTO transactions (id, user_id, currency, transaction_type, amount, status, description, created_at)
-       VALUES ($1, $2, 'GBP', 'paper_grant', $3, 'completed', 'Paper trading funds granted by admin', NOW())`,
-      [uuidv4(), userId, amount]
+      `INSERT INTO transactions (id, user_id, account_id, type, amount, balance_before, balance_after, currency, description)
+       VALUES ($1, $2, $3, 'CREDIT', $4, $5, $6, 'GBP', 'Paper trading funds granted by admin')`,
+      [uuidv4(), userId, accountId, amount, balanceBefore, balanceAfter]
     );
     
     res.json({
