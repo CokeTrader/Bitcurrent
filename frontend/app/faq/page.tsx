@@ -1,208 +1,219 @@
 "use client"
 
-import * as React from "react"
 import { motion } from "framer-motion"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Card } from "@/components/ui/card"
+import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { faqData, generateFAQSchema } from "@/lib/faq-data"
-import { Search, ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react"
 
-const categories = [
-  { id: 'all', name: 'All Questions', icon: HelpCircle },
-  { id: 'getting-started', name: 'Getting Started', icon: HelpCircle },
-  { id: 'trading', name: 'Trading', icon: HelpCircle },
-  { id: 'security', name: 'Security', icon: HelpCircle },
-  { id: 'fees', name: 'Fees', icon: HelpCircle },
-  { id: 'legal', name: 'Legal & Compliance', icon: HelpCircle },
-  { id: 'staking', name: 'Staking', icon: HelpCircle },
+const faqs = [
+  {
+    category: "Getting Started",
+    questions: [
+      {
+        q: "How do I create an account?",
+        a: "Click 'Sign Up' and enter your email. Verify your email, complete KYC (2 minutes), and you're ready to trade! New users get £10 free Bitcoin."
+      },
+      {
+        q: "What is the £10 bonus?",
+        a: "All new verified users receive £10 in Bitcoin absolutely free. No deposit required. Complete verification to claim your bonus instantly."
+      },
+      {
+        q: "How long does verification take?",
+        a: "KYC verification typically takes 2-5 minutes. You'll need a government ID (passport or driving license) and a selfie. Approval is usually instant."
+      }
+    ]
+  },
+  {
+    category: "Trading & Fees",
+    questions: [
+      {
+        q: "What are your trading fees?",
+        a: "We charge 0.25% per trade - 6x cheaper than Coinbase. Example: £1,000 trade = only £2.50 fee. No hidden charges, no withdrawal fees."
+      },
+      {
+        q: "What cryptocurrencies can I trade?",
+        a: "We support Bitcoin (BTC), Ethereum (ETH), Solana (SOL), XRP, Cardano (ADA), Dogecoin (DOGE), Polkadot (DOT), and Avalanche (AVAX)."
+      },
+      {
+        q: "What is a market order?",
+        a: "A market order executes immediately at the current market price. It's the fastest way to buy or sell crypto. Your order fills within seconds."
+      },
+      {
+        q: "Can I set price alerts?",
+        a: "Yes! Set custom price alerts for any cryptocurrency. We'll email you when your target price is reached. Perfect for timing your trades."
+      }
+    ]
+  },
+  {
+    category: "Deposits & Withdrawals",
+    questions: [
+      {
+        q: "How do I deposit money?",
+        a: "Click 'Deposit' → Choose 'Instant Deposit (Stripe)' → Enter amount → Pay with card. Funds appear in your account immediately. Minimum £10."
+      },
+      {
+        q: "Are there deposit fees?",
+        a: "No! We don't charge deposit fees. Stripe may charge a small processing fee (typically 1.4% + 20p), which is standard for card payments."
+      },
+      {
+        q: "How long do withdrawals take?",
+        a: "Bank withdrawals: 1-2 business days. Crypto withdrawals: 10-30 minutes depending on network congestion. All withdrawals are free."
+      },
+      {
+        q: "What's the minimum withdrawal?",
+        a: "Minimum withdrawal is £10 for GBP, or equivalent in crypto. This helps keep transaction costs low for everyone."
+      }
+    ]
+  },
+  {
+    category: "Security & Safety",
+    questions: [
+      {
+        q: "Is my money safe?",
+        a: "Yes. We use bank-grade security: 95% of funds in cold storage, 2FA authentication, SSL encryption, and regular security audits. Your funds are protected."
+      },
+      {
+        q: "What is cold storage?",
+        a: "Cold storage keeps crypto offline in secure vaults, protected from hackers. Only 5% stays online for instant trading. Industry best practice."
+      },
+      {
+        q: "Do you have 2FA?",
+        a: "Yes, we support 2-Factor Authentication via SMS, email, and authenticator apps. We strongly recommend enabling 2FA for maximum security."
+      },
+      {
+        q: "What if I forget my password?",
+        a: "Click 'Forgot Password' on the login page. We'll send a reset link to your email. For security, only you can reset your password."
+      }
+    ]
+  },
+  {
+    category: "Regulations & Compliance",
+    questions: [
+      {
+        q: "Are you FCA registered?",
+        a: "We operate as a UK crypto broker. While FCA registration is in progress, we follow all UK crypto regulations and AML/KYC requirements."
+      },
+      {
+        q: "Why do you need my ID?",
+        a: "UK law requires all crypto platforms to verify user identity (KYC). This prevents fraud, money laundering, and protects all users."
+      },
+      {
+        q: "Is crypto trading risky?",
+        a: "Yes. Crypto prices are highly volatile. Only invest what you can afford to lose. 75% of retail traders lose money. Trade responsibly."
+      }
+    ]
+  },
+  {
+    category: "Technical Support",
+    questions: [
+      {
+        q: "How do I contact support?",
+        a: "Email us at support@bitcurrent.co.uk. We typically respond within 2-4 hours. For urgent issues, use the live chat on your dashboard."
+      },
+      {
+        q: "Why is my order pending?",
+        a: "Orders may pend during high volatility or if there's insufficient balance. Check your available funds and ensure you have enough for the trade + fees."
+      },
+      {
+        q: "Can I cancel an order?",
+        a: "Market orders execute instantly and can't be cancelled. Limit orders (coming soon) can be cancelled anytime before they fill."
+      }
+    ]
+  }
 ]
 
 export default function FAQPage() {
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("all")
-  const [expandedIndex, setExpandedIndex] = React.useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
-  // Filter FAQs by search and category
-  const filteredFAQs = React.useMemo(() => {
-    let filtered = faqData
-
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(faq => faq.category === selectedCategory)
-    }
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(faq => 
-        faq.question.toLowerCase().includes(query) ||
-        faq.answer.toLowerCase().includes(query)
-      )
-    }
-
-    return filtered
-  }, [searchQuery, selectedCategory])
-
-  const toggleExpand = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index)
-  }
+  const filteredFAQs = faqs.map(category => ({
+    ...category,
+    questions: category.questions.filter(
+      q => q.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           q.a.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })).filter(category => category.questions.length > 0)
 
   return (
     <div className="min-h-screen bg-background">
-      {/* FAQ Schema for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(generateFAQSchema(faqData)) }}
-      />
-
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
+      <main className="container mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="max-w-4xl mx-auto"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-4">
-            <HelpCircle className="h-4 w-4" />
-            Help Center
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to know about trading cryptocurrency on BitCurrent
-          </p>
-        </motion.div>
-
-        {/* Search */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="max-w-2xl mx-auto mb-8"
-        >
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search questions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-14 text-base"
-            />
-          </div>
-        </motion.div>
-
-        {/* Category Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-wrap gap-2 justify-center mb-12"
-        >
-          {categories.map((category) => (
-            <Badge
-              key={category.id}
-              variant={selectedCategory === category.id ? "default" : "outline"}
-              className={cn(
-                "px-4 py-2 cursor-pointer transition-all hover:scale-105",
-                selectedCategory === category.id && "bg-primary text-primary-foreground"
-              )}
-              onClick={() => setSelectedCategory(category.id)}
-            >
-              {category.name}
-            </Badge>
-          ))}
-        </motion.div>
-
-        {/* FAQ List */}
-        <div className="max-w-4xl mx-auto space-y-4">
-          {filteredFAQs.length === 0 ? (
-            <Card className="p-12 text-center">
-              <HelpCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No questions found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or browse all questions
-              </p>
-            </Card>
-          ) : (
-            filteredFAQs.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Card 
-                  className={cn(
-                    "p-6 cursor-pointer transition-all hover:shadow-lg",
-                    expandedIndex === index && "shadow-xl border-primary/50"
-                  )}
-                  onClick={() => toggleExpand(index)}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-2 flex items-start gap-3">
-                        <span className="text-primary mt-1">Q:</span>
-                        <span>{faq.question}</span>
-                      </h3>
-                      {expandedIndex === index && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="pl-7"
-                        >
-                          <div className="pt-4 border-t border-border mt-4">
-                            <p className="text-muted-foreground leading-relaxed">
-                              {faq.answer}
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </div>
-                    <div className="flex-shrink-0">
-                      {expandedIndex === index ? (
-                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))
-          )}
-        </div>
-
-        {/* Contact CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="max-w-2xl mx-auto mt-16"
-        >
-          <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-success/5">
-            <h2 className="text-2xl font-bold mb-4">Still have questions?</h2>
-            <p className="text-muted-foreground mb-6">
-              Our support team is available 24/7 to help you with any questions about trading cryptocurrency on BitCurrent.
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold mb-4">
+              Frequently Asked Questions
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Everything you need to know about trading on BitCurrent
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="mailto:support@bitcurrent.co.uk">
-                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] hover:scale-[1.02] bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8">
-                  Email Support
-                </button>
-              </a>
-              <a href="/auth/register">
-                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] hover:scale-[1.02] border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8">
-                  Start Trading
-                </button>
-              </a>
+          </div>
+
+          {/* Search */}
+          <Card className="p-4 mb-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                placeholder="Search FAQs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </Card>
+
+          {/* FAQ Categories */}
+          <div className="space-y-8">
+            {filteredFAQs.map((category, idx) => (
+              <motion.div
+                key={category.category}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <h2 className="text-2xl font-bold mb-4">{category.category}</h2>
+                <Card className="p-6">
+                  <Accordion type="single" collapsible className="w-full">
+                    {category.questions.map((faq, qIdx) => (
+                      <AccordionItem key={qIdx} value={`${idx}-${qIdx}`}>
+                        <AccordionTrigger className="text-left">
+                          {faq.q}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground">
+                          {faq.a}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Still Need Help */}
+          <Card className="mt-12 p-8 text-center bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+            <h3 className="text-2xl font-bold mb-2">Still need help?</h3>
+            <p className="text-muted-foreground mb-4">
+              Our support team is here for you
+            </p>
+            <a
+              href="mailto:support@bitcurrent.co.uk"
+              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            >
+              Email Support →
+            </a>
+          </Card>
         </motion.div>
-      </div>
+      </main>
     </div>
   )
 }
-
