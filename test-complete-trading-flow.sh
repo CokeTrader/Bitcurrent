@@ -22,7 +22,7 @@ NC='\033[0m' # No Color
 
 # Step 1: Health Check
 echo "📊 Step 1: Health Check"
-HEALTH=$(curl -s "$API_URL/../health")
+HEALTH=$(curl -s "https://bitcurrent-production.up.railway.app/health")
 if echo "$HEALTH" | grep -q "healthy"; then
   echo -e "${GREEN}✅ Backend is healthy${NC}"
 else
