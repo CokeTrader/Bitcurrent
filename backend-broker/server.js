@@ -22,8 +22,21 @@ const withdrawalsRoutes = require('./routes/withdrawals');
 const adminRoutes = require('./routes/admin');
 const adminDashboardRoutes = require('./routes/admin-dashboard');
 const migrateRoutes = require('./routes/migrate');
-const twoFARoutes = require('./routes/2fa');
-const paperFundsRoutes = require('./routes/paper-funds');
+
+// Safely load 2FA and paper-funds routes (catch errors if dependencies missing)
+let twoFARoutes, paperFundsRoutes;
+try {
+  twoFARoutes = require('./routes/2fa');
+  console.log('✅ 2FA routes loaded');
+} catch (err) {
+  console.error('⚠️  Failed to load 2FA routes:', err.message);
+}
+try {
+  paperFundsRoutes = require('./routes/paper-funds');
+  console.log('✅ Paper funds routes loaded');
+} catch (err) {
+  console.error('⚠️  Failed to load paper-funds routes:', err.message);
+}
 
 // Import services
 const { pool } = require('./config/database');
@@ -166,8 +179,16 @@ app.use('/api/v1/withdrawals', withdrawalsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/migrate', migrateRoutes);
-app.use('/api/v1/2fa', twoFARoutes);
-app.use('/api/v1/paper', paperFundsRoutes);
+
+// Conditionally register 2FA and paper-funds routes
+if (twoFARoutes) {
+  app.use('/api/v1/2fa', twoFARoutes);
+  console.log('✅ 2FA routes registered at /api/v1/2fa');
+}
+if (paperFundsRoutes) {
+  app.use('/api/v1/paper', paperFundsRoutes);
+  console.log('✅ Paper funds routes registered at /api/v1/paper');
+}
 
 // Root endpoint
 app.get('/', (req, res) => {
