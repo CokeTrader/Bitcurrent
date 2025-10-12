@@ -1,0 +1,282 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "BitCurrent API",
+    "description": "UK Crypto Broker API - Trade Bitcoin, Ethereum & more with 0.25% fees",
+    "version": "1.0.0",
+    "contact": {
+      "email": "support@bitcurrent.co.uk",
+      "url": "https://bitcurrent.vercel.app"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://bitcurrent-production.up.railway.app/api/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3001/api/v1",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    { "name": "Authentication", "description": "User registration and login" },
+    { "name": "Trading", "description": "Place and manage orders" },
+    { "name": "Markets", "description": "Market data and prices" },
+    { "name": "Deposits", "description": "Deposit funds" },
+    { "name": "Withdrawals", "description": "Withdraw funds" },
+    { "name": "Staking", "description": "Earn passive income" },
+    { "name": "Referrals", "description": "Referral program" },
+    { "name": "Notifications", "description": "Price alerts and notifications" }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns JWT token"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/markets": {
+      "get": {
+        "tags": ["Markets"],
+        "summary": "Get all available markets",
+        "responses": {
+          "200": {
+            "description": "List of all tradeable cryptocurrency pairs"
+          }
+        }
+      }
+    },
+    "/markets/{symbol}/quote": {
+      "get": {
+        "tags": ["Markets"],
+        "summary": "Get real-time quote for symbol",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "BTC-GBP"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current price and market data"
+          }
+        }
+      }
+    },
+    "/orders": {
+      "post": {
+        "tags": ["Trading"],
+        "summary": "Place new order",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "symbol": { "type": "string", "example": "BTC-GBP" },
+                  "side": { "type": "string", "enum": ["buy", "sell"] },
+                  "quantity": { "type": "number", "example": 0.01 },
+                  "type": { "type": "string", "enum": ["market"], "default": "market" }
+                },
+                "required": ["symbol", "side", "quantity"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order placed successfully"
+          },
+          "400": {
+            "description": "Invalid order parameters"
+          },
+          "403": {
+            "description": "Insufficient funds"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Trading"],
+        "summary": "Get user's orders",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of user's orders"
+          }
+        }
+      }
+    },
+    "/deposits/stripe-checkout": {
+      "post": {
+        "tags": ["Deposits"],
+        "summary": "Create Stripe checkout session",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": { "type": "number", "minimum": 10, "example": 100 }
+                },
+                "required": ["amount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout session created, returns Stripe URL"
+          }
+        }
+      }
+    },
+    "/staking/pools": {
+      "get": {
+        "tags": ["Staking"],
+        "summary": "Get available staking pools",
+        "responses": {
+          "200": {
+            "description": "List of staking options with APY rates"
+          }
+        }
+      }
+    },
+    "/staking/stake": {
+      "post": {
+        "tags": ["Staking"],
+        "summary": "Stake cryptocurrency",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "symbol": { "type": "string", "example": "ETH" },
+                  "amount": { "type": "number", "example": 0.1 }
+                },
+                "required": ["symbol", "amount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Staking position created"
+          }
+        }
+      }
+    },
+    "/referrals/code": {
+      "get": {
+        "tags": ["Referrals"],
+        "summary": "Get user's referral code",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Returns user's unique referral code and link"
+          }
+        }
+      }
+    },
+    "/notifications/price-alerts": {
+      "post": {
+        "tags": ["Notifications"],
+        "summary": "Create price alert",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "symbol": { "type": "string", "example": "BTC" },
+                  "targetPrice": { "type": "number", "example": 65000 },
+                  "direction": { "type": "string", "enum": ["above", "below"] }
+                },
+                "required": ["symbol", "targetPrice", "direction"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Price alert created successfully"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
+
