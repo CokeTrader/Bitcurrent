@@ -1,4 +1,5 @@
 // BitCurrent Backend - Simplified Broker Model
+// PostgreSQL connection via Railway DATABASE_URL environment variable
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
