@@ -68,7 +68,7 @@ export async function getLiveGBPUSDRate(): Promise<number> {
 
   // Ultimate fallback: use a reasonable default (updated monthly)
   console.warn('All exchange rate APIs failed, using fallback rate')
-  const fallbackRate = 0.78 // As of Oct 2024: 1 USD ≈ 0.78 GBP
+  const fallbackRate = 0.750285 // As of Oct 2024: 1 USD ≈ 0.750285 GBP (updated to current rate)
   
   cachedRate = {
     rate: fallbackRate,

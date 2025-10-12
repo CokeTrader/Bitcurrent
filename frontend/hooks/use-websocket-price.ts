@@ -25,18 +25,23 @@ const symbolMap: Record<string, string> = {
 
 export function useWebSocketPrice(symbol: string) {
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null)
-  const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.78) // Default fallback
+  const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.750285) // Default fallback - updated to current rate
   const binanceSymbol = symbolMap[symbol] || 'btcusdt'
 
   // Fetch live exchange rate on mount and every hour
   useEffect(() => {
     const fetchRate = async () => {
-      const rate = await getLiveGBPUSDRate()
-      setUsdToGbpRate(rate)
+      try {
+        const rate = await getLiveGBPUSDRate()
+        console.log(`[WebSocket] Updated USD/GBP rate: ${rate}`)
+        setUsdToGbpRate(rate)
+      } catch (error) {
+        console.error('[WebSocket] Failed to fetch exchange rate:', error)
+      }
     }
     
     fetchRate()
-    const interval = setInterval(fetchRate, 60 * 60 * 1000) // Refresh every hour
+    const interval = setInterval(fetchRate, 5 * 60 * 1000) // Refresh every 5 minutes for better accuracy
     
     return () => clearInterval(interval)
   }, [])
@@ -57,6 +62,7 @@ export function useWebSocketPrice(symbol: string) {
         
         // Convert USDT price to GBP using LIVE exchange rate
         const priceInGbp = parseFloat(data.c) * usdToGbpRate
+        console.log(`[WebSocket] BTC: $${data.c} * ${usdToGbpRate} = £${priceInGbp.toFixed(2)}`)
 
         setPriceData({
           symbol: symbol,
@@ -89,17 +95,22 @@ export function useWebSocketPrice(symbol: string) {
 // Hook for multiple symbols
 export function useWebSocketPrices(symbols: string[]) {
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({})
-  const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.78) // Default fallback
+  const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.750285) // Default fallback - updated to current rate
 
   // Fetch live exchange rate on mount and every hour
   useEffect(() => {
     const fetchRate = async () => {
-      const rate = await getLiveGBPUSDRate()
-      setUsdToGbpRate(rate)
+      try {
+        const rate = await getLiveGBPUSDRate()
+        console.log(`[WebSocket] Updated USD/GBP rate: ${rate}`)
+        setUsdToGbpRate(rate)
+      } catch (error) {
+        console.error('[WebSocket] Failed to fetch exchange rate:', error)
+      }
     }
     
     fetchRate()
-    const interval = setInterval(fetchRate, 60 * 60 * 1000) // Refresh every hour
+    const interval = setInterval(fetchRate, 5 * 60 * 1000) // Refresh every 5 minutes for better accuracy
     
     return () => clearInterval(interval)
   }, [])
