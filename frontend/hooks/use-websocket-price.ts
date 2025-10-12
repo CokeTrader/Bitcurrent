@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
+import { getLiveGBPUSDRate } from '@/lib/api/exchange-rate'
 
 export interface PriceUpdate {
   symbol: string
@@ -24,7 +25,21 @@ const symbolMap: Record<string, string> = {
 
 export function useWebSocketPrice(symbol: string) {
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null)
+  const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.78) // Default fallback
   const binanceSymbol = symbolMap[symbol] || 'btcusdt'
+
+  // Fetch live exchange rate on mount and every hour
+  useEffect(() => {
+    const fetchRate = async () => {
+      const rate = await getLiveGBPUSDRate()
+      setUsdToGbpRate(rate)
+    }
+    
+    fetchRate()
+    const interval = setInterval(fetchRate, 60 * 60 * 1000) // Refresh every hour
+    
+    return () => clearInterval(interval)
+  }, [])
 
   const { sendMessage, lastMessage, readyState } = useWebSocket(
     `${BINANCE_WS_URL}/${binanceSymbol}@ticker`,
@@ -40,9 +55,7 @@ export function useWebSocketPrice(symbol: string) {
       try {
         const data = JSON.parse(lastMessage.data)
         
-        // Convert USDT price to GBP using correct exchange rate
-        // 1 USD = 0.78 GBP (approximate current rate)
-        const usdToGbpRate = 0.78
+        // Convert USDT price to GBP using LIVE exchange rate
         const priceInGbp = parseFloat(data.c) * usdToGbpRate
 
         setPriceData({
@@ -56,7 +69,7 @@ export function useWebSocketPrice(symbol: string) {
         console.error('WebSocket message parse error:', error)
       }
     }
-  }, [lastMessage, symbol])
+  }, [lastMessage, symbol, usdToGbpRate])
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
@@ -76,6 +89,20 @@ export function useWebSocketPrice(symbol: string) {
 // Hook for multiple symbols
 export function useWebSocketPrices(symbols: string[]) {
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({})
+  const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.78) // Default fallback
+
+  // Fetch live exchange rate on mount and every hour
+  useEffect(() => {
+    const fetchRate = async () => {
+      const rate = await getLiveGBPUSDRate()
+      setUsdToGbpRate(rate)
+    }
+    
+    fetchRate()
+    const interval = setInterval(fetchRate, 60 * 60 * 1000) // Refresh every hour
+    
+    return () => clearInterval(interval)
+  }, [])
 
   // Create streams for multiple symbols
   const streams = symbols.map(s => {
@@ -96,7 +123,7 @@ export function useWebSocketPrices(symbols: string[]) {
     if (lastMessage !== null) {
       try {
         const { data } = JSON.parse(lastMessage.data)
-        const usdToGbpRate = 0.78 // 1 USD = 0.78 GBP
+        // Use LIVE exchange rate
         const priceInGbp = parseFloat(data.c) * usdToGbpRate
 
         // Find which symbol this update is for
@@ -120,7 +147,7 @@ export function useWebSocketPrices(symbols: string[]) {
         console.error('WebSocket message parse error:', error)
       }
     }
-  }, [lastMessage])
+  }, [lastMessage, usdToGbpRate])
 
   return {
     prices,
