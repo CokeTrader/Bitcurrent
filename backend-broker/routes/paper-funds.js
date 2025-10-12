@@ -32,10 +32,10 @@ router.post('/grant', verifyToken, async (req, res) => {
     
     // Create or update GBP account with paper funds
     await query(
-      `INSERT INTO accounts (user_id, currency, balance, available_balance)
-       VALUES ($1, 'GBP', $2, $2)
+      `INSERT INTO accounts (user_id, currency, balance, available, reserved)
+       VALUES ($1, 'GBP', $2, $2, 0)
        ON CONFLICT (user_id, currency) 
-       DO UPDATE SET balance = $2, available_balance = $2`,
+       DO UPDATE SET balance = $2, available = $2, reserved = 0`,
       [userId, amount]
     );
     
@@ -65,7 +65,7 @@ router.post('/grant', verifyToken, async (req, res) => {
 router.get('/status', verifyToken, async (req, res) => {
   try {
     const result = await query(
-      `SELECT currency, balance, available_balance 
+      `SELECT currency, balance, available, reserved
        FROM accounts WHERE user_id = $1`,
       [req.user.id]
     );
