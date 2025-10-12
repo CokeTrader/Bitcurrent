@@ -1,208 +1,192 @@
-import * as React from "react"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Shield, Lock, Eye, Server, AlertTriangle, CheckCircle2, KeyRound, Bell } from "lucide-react"
-import Link from "next/link"
-import type { Metadata } from 'next'
+"use client"
 
-export const metadata: Metadata = {
-  title: 'Cryptocurrency Security | How BitCurrent Protects Your Crypto Assets',
-  description: '95% cold storage, £85k insurance, bank-grade encryption. Learn how BitCurrent Exchange protects your Bitcoin and cryptocurrency with military-grade security.',
-  keywords: ['crypto security uk', 'bitcoin security', 'cold storage crypto', 'crypto insurance', 'secure crypto exchange'],
-  openGraph: {
-    title: 'Bank-Grade Cryptocurrency Security | BitCurrent',
-    description: 'Multi-layered security protecting your crypto: cold storage, insurance, encryption, and 24/7 monitoring.',
-    url: 'https://bitcurrent.co.uk/security',
-  },
-  alternates: {
-    canonical: 'https://bitcurrent.co.uk/security',
-  },
-}
+import { useState } from "react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Shield, Smartphone, Monitor, MapPin, Clock, X } from "lucide-react"
+import { toast } from "sonner"
+import Image from "next/image"
 
 export default function SecurityPage() {
+  const [show2FASetup, setShow2FASetup] = useState(false)
+  const [verificationCode, setVerificationCode] = useState("")
+  const [qrCode, setQRCode] = useState("")
+
+  const sessions = [
+    {
+      id: "session_1",
+      device: "Chrome on macOS",
+      location: "London, UK",
+      ip: "81.xxx.xxx.123",
+      current: true,
+      lastActive: "Now"
+    },
+    {
+      id: "session_2",
+      device: "Safari on iPhone",
+      location: "London, UK",
+      ip: "81.xxx.xxx.124",
+      current: false,
+      lastActive: "2 hours ago"
+    }
+  ]
+
+  const securityEvents = [
+    {
+      type: "Login",
+      device: "Chrome on macOS",
+      location: "London, UK",
+      time: "Just now",
+      success: true
+    },
+    {
+      type: "Password Changed",
+      device: "Chrome on macOS",
+      location: "London, UK",
+      time: "2 days ago",
+      success: true
+    }
+  ]
+
+  const enable2FA = async () => {
+    // TODO: Call API
+    setQRCode("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")
+    setShow2FASetup(true)
+  }
+
+  const verify2FA = async () => {
+    // TODO: Call API
+    toast.success("2FA enabled successfully!")
+    setShow2FASetup(false)
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 text-sm font-medium text-success mb-4">
-            <Shield className="h-4 w-4" />
-            Bank-Grade Security
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display">
-            Your Security is Our Priority
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Multi-layered security infrastructure protecting over £2.3 billion in customer assets
-          </p>
-        </div>
-
-        {/* 7 Layers of Security */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center">7 Layers of Protection</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="p-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Server className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">95% Cold Storage</h3>
-              <p className="text-muted-foreground">
-                The vast majority of customer crypto is stored offline in geographically distributed vaults, completely disconnected from the internet and unhackable.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Lock className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Military-Grade Encryption</h3>
-              <p className="text-muted-foreground">
-                AES-256 encryption for all data at rest. TLS 1.3 for data in transit. All passwords hashed with bcrypt. Your data is encrypted to military standards.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Shield className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">£85,000 Insurance</h3>
-              <p className="text-muted-foreground">
-                FSCS protection covers every account up to £85,000. Your funds are insured against exchange hacks, theft, and operational failures.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <KeyRound className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Multi-Signature Wallets</h3>
-              <p className="text-muted-foreground">
-                All hot wallets require multiple authorized signatures for any transaction. No single person can move funds unilaterally.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Eye className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">24/7 Monitoring</h3>
-              <p className="text-muted-foreground">
-                AI-powered fraud detection monitors every transaction 24/7/365. Suspicious activity is flagged and investigated immediately by our security team.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Bell className="h-7 w-7 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Security Audits</h3>
-              <p className="text-muted-foreground">
-                Quarterly penetration testing by independent security firms. Annual compliance audits. Active bug bounty program rewarding security researchers.
-              </p>
-            </Card>
-          </div>
-        </div>
-
-        {/* Your Responsibility */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold mb-6">Your Security Checklist</h2>
-          <Card className="p-6">
-            <p className="text-muted-foreground mb-6">
-              While we protect your assets with industry-leading security, your account security also depends on following best practices:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-                <div>
-                  <div className="font-semibold mb-1">Enable Two-Factor Authentication</div>
-                  <div className="text-sm text-muted-foreground">Use Google Authenticator or Authy, not SMS</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-                <div>
-                  <div className="font-semibold mb-1">Use Strong, Unique Passwords</div>
-                  <div className="text-sm text-muted-foreground">12+ characters with special symbols</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-                <div>
-                  <div className="font-semibold mb-1">Whitelist Withdrawal Addresses</div>
-                  <div className="text-sm text-muted-foreground">Pre-approve addresses for extra security</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-                <div>
-                  <div className="font-semibold mb-1">Review Account Activity</div>
-                  <div className="text-sm text-muted-foreground">Check login history regularly</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-                <div>
-                  <div className="font-semibold mb-1">Beware of Phishing</div>
-                  <div className="text-sm text-muted-foreground">Only visit bitcurrent.co.uk directly</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-success mt-1 flex-shrink-0" />
-                <div>
-                  <div className="font-semibold mb-1">Use Hardware Wallet for Large Amounts</div>
-                  <div className="text-sm text-muted-foreground">Ledger or Trezor for long-term storage</div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Security Track Record */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <Card className="p-8 bg-gradient-to-br from-success/10 to-primary/10 border-success/20">
-            <div className="flex items-start gap-4">
-              <Shield className="h-12 w-12 text-success flex-shrink-0" />
-              <div>
-                <h3 className="text-2xl font-bold mb-3">Perfect Security Track Record</h3>
-                <p className="text-muted-foreground mb-4">
-                  Since our launch, BitCurrent has maintained a perfect security record with zero security breaches, zero customer fund losses due to hacks, and 99.9% uptime.
-                </p>
-                <div className="flex flex-wrap gap-6 text-sm">
-                  <div>
-                    <div className="text-3xl font-bold text-success">0</div>
-                    <div className="text-muted-foreground">Security Breaches</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-success">0</div>
-                    <div className="text-muted-foreground">Customer Losses</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-success">99.9%</div>
-                    <div className="text-muted-foreground">Uptime</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* CTA */}
+      <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
-          <Card className="p-8 md:p-12 text-center">
-            <h2 className="text-3xl font-bold mb-4">Trade with Confidence</h2>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Join 500,000+ UK traders who trust BitCurrent with their cryptocurrency investments. Bank-grade security meets cutting-edge technology.
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2">Security Settings</h1>
+            <p className="text-muted-foreground">
+              Manage your account security and active sessions
             </p>
-            <Link href="/auth/register">
-              <Button size="lg">
-                Create Secure Account
-              </Button>
-            </Link>
+          </div>
+
+          {/* 2FA Section */}
+          <Card className="p-6 mb-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4">
+                <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-950 flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-1">Two-Factor Authentication</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Add an extra layer of security to your account
+                  </p>
+                  <Badge variant="outline">Not Enabled</Badge>
+                </div>
+              </div>
+              <Button onClick={enable2FA}>Enable 2FA</Button>
+            </div>
+
+            {show2FASetup && (
+              <div className="mt-6 pt-6 border-t space-y-4">
+                <div className="text-center">
+                  <p className="font-semibold mb-4">Scan this QR code with your authenticator app:</p>
+                  {qrCode && (
+                    <div className="inline-block p-4 bg-white rounded-lg">
+                      <div className="w-48 h-48 bg-gray-200 flex items-center justify-center">
+                        QR Code Here
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    Enter 6-digit code from app:
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="123456"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                      maxLength={6}
+                      className="text-center text-2xl font-mono tracking-widest"
+                    />
+                    <Button onClick={verify2FA} disabled={verificationCode.length !== 6}>
+                      Verify
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Active Sessions */}
+          <Card className="p-6 mb-6">
+            <h3 className="text-xl font-bold mb-4">Active Sessions</h3>
+            <div className="space-y-4">
+              {sessions.map((session) => (
+                <div key={session.id} className="flex items-center gap-4 p-4 rounded-lg border">
+                  <Monitor className="h-8 w-8 text-muted-foreground" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold">{session.device}</span>
+                      {session.current && (
+                        <Badge variant="default" className="text-xs">Current</Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {session.location}
+                      </div>
+                      <div>{session.ip}</div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {session.lastActive}
+                      </div>
+                    </div>
+                  </div>
+                  {!session.current && (
+                    <Button variant="outline" size="sm">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Security Activity */}
+          <Card className="p-6">
+            <h3 className="text-xl font-bold mb-4">Recent Security Activity</h3>
+            <div className="space-y-3">
+              {securityEvents.map((event, idx) => (
+                <div key={idx} className="flex items-center justify-between py-3 border-b last:border-0">
+                  <div>
+                    <div className="font-semibold">{event.type}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {event.device} • {event.location}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-muted-foreground">{event.time}</div>
+                    {event.success && (
+                      <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                        Success
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
-
