@@ -7,8 +7,20 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const slowDown = require('express-slow-down');
 const session = require('express-session');
-const passport = require('./config/passport'); // Import configured passport
 require('dotenv').config();
+
+// Conditionally load passport only if Google OAuth credentials are available
+let passport = null;
+try {
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport = require('./config/passport');
+    console.log('✓ Google OAuth enabled');
+  } else {
+    console.warn('⚠ Google OAuth disabled: missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
+  }
+} catch (error) {
+  console.error('✗ Failed to initialize passport:', error.message);
+}
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -131,21 +143,23 @@ app.use('/api/v1/orders', orderLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session middleware for passport
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'bitcurrent-secret-key-change-in-production',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
+// Session middleware for passport (only if passport is available)
+if (passport) {
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'bitcurrent-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
 
-// Initialize passport
-app.use(passport.initialize());
-app.use(passport.session());
+  // Initialize passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+}
 
 // Request logging middleware
 app.use((req, res, next) => {
