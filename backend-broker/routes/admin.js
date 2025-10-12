@@ -526,10 +526,17 @@ router.get('/stats', async (req, res) => {
  */
 router.post('/grant-paper-funds', async (req, res) => {
   try {
-    if (process.env.ALPACA_PAPER !== 'true') {
+    // Check if paper trading mode is enabled (accept 'true', true, or '1')
+    const isPaperMode = process.env.ALPACA_PAPER === 'true' || 
+                        process.env.ALPACA_PAPER === '1' || 
+                        process.env.ALPACA_PAPER === true;
+    
+    if (!isPaperMode) {
+      console.log('Paper mode check failed. ALPACA_PAPER =', process.env.ALPACA_PAPER);
       return res.status(403).json({
         success: false,
-        error: 'Paper funds only available in paper trading mode'
+        error: 'Paper funds only available in paper trading mode',
+        debug: { alpacaPaper: process.env.ALPACA_PAPER }
       });
     }
     
