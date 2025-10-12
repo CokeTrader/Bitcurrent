@@ -258,6 +258,7 @@ export default function TradePagePro({ params }: TradePageProps) {
               symbol={symbol}
               interval="1h"
               className="h-[600px]"
+              currentPrice={currentPrice}
             />
 
             {/* Order Management Tabs */}

@@ -11,6 +11,7 @@ export interface AdvancedChartProps {
   symbol: string
   data?: CandlestickData<Time>[]
   interval?: '1m' | '5m' | '15m' | '1h' | '4h' | '1d'
+  currentPrice?: number | null
   onIntervalChange?: (interval: string) => void
   className?: string
 }
@@ -55,12 +56,13 @@ function generateCandlestickData(basePrice: number): CandlestickData<Time>[] {
   return data
 }
 
-export function AdvancedChart({
-  symbol,
-  data,
-  interval = '1h',
+export function AdvancedChart({ 
+  symbol, 
+  data, 
+  interval = '1h', 
+  currentPrice,
   onIntervalChange,
-  className
+  className 
 }: AdvancedChartProps) {
   const chartContainerRef = React.useRef<HTMLDivElement>(null)
   const chartRef = React.useRef<IChartApi | null>(null)
@@ -122,8 +124,9 @@ export function AdvancedChart({
 
     candlestickSeriesRef.current = candlestickSeries
 
-    // Set data
-    const chartData = data || generateCandlestickData(84092) // Real BTC price
+    // Set data - use current price if available
+    const basePrice = currentPrice || 84092 // Use current price if available
+    const chartData = data || generateCandlestickData(basePrice)
     candlestickSeries.setData(chartData)
 
     // Fit content
