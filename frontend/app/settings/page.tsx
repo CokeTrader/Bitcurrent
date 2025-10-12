@@ -158,9 +158,12 @@ export default function SettingsPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                       Add an extra layer of security to your account
                     </p>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => router.push('/settings/2fa')}
+                    >
                       <Lock className="h-4 w-4 mr-2" />
-                      Enable 2FA
+                      Manage 2FA
                     </Button>
                   </div>
 

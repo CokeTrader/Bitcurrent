@@ -74,6 +74,25 @@ const nextConfig = {
 
   // External packages that need transpiling
   transpilePackages: ['@rainbow-me/rainbowkit'],
+  
+  // Experimental features for performance
+  experimental: {
+    optimizeCss: true, // Enable CSS optimization
+    scrollRestoration: true, // Better scroll behavior
+  },
+  
+  // SWC minification (faster than Terser)
+  swcMinify: true,
+  
+  // Optimize production builds
+  productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundles
+  
+  // Modularize imports for better tree-shaking
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
 }
 
 module.exports = nextConfig

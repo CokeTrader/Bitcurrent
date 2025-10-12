@@ -520,5 +520,59 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+/**
+ * POST /admin/grant-paper-funds
+ * Grant paper trading funds to a user (admin only, paper mode only)
+ */
+router.post('/grant-paper-funds', async (req, res) => {
+  try {
+    if (process.env.ALPACA_PAPER !== 'true') {
+      return res.status(403).json({
+        success: false,
+        error: 'Paper funds only available in paper trading mode'
+      });
+    }
+    
+    const { userId, amount = 10000 } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'userId is required'
+      });
+    }
+    
+    // Create or update GBP account with paper funds
+    await query(
+      `INSERT INTO accounts (user_id, currency, balance, available, reserved)
+       VALUES ($1, 'GBP', $2, $2, 0)
+       ON CONFLICT (user_id, currency) 
+       DO UPDATE SET balance = accounts.balance + $2, available = accounts.available + $2`,
+      [userId, amount]
+    );
+    
+    // Log the paper fund grant
+    await query(
+      `INSERT INTO transactions (id, user_id, currency, transaction_type, amount, status, description, created_at)
+       VALUES ($1, $2, 'GBP', 'paper_grant', $3, 'completed', 'Paper trading funds granted by admin', NOW())`,
+      [uuidv4(), userId, amount]
+    );
+    
+    res.json({
+      success: true,
+      message: `Granted £${amount.toLocaleString()} paper trading funds to user ${userId}`,
+      userId,
+      amount
+    });
+    
+  } catch (error) {
+    console.error('Grant paper funds error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to grant paper funds'
+    });
+  }
+});
+
 module.exports = router;
 

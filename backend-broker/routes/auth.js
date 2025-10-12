@@ -7,6 +7,7 @@ const zxcvbn = require('zxcvbn');
 // const passport = require('../config/passport');
 const { query } = require('../config/database');
 const { generateToken, generateRefreshToken } = require('../middleware/auth');
+const { validateRegistration, validateLogin } = require('../middleware/validation');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
@@ -40,7 +41,7 @@ router.get('/google/callback',
  * POST /auth/register
  * Register new user
  */
-router.post('/register', async (req, res) => {
+router.post('/register', validateRegistration, async (req, res) => {
   try {
     let { email, password, firstName, lastName } = req.body;
     
@@ -138,7 +139,7 @@ router.post('/register', async (req, res) => {
  * POST /auth/login
  * Login user
  */
-router.post('/login', async (req, res) => {
+router.post('/login', validateLogin, async (req, res) => {
   try {
     const { email, password } = req.body;
     

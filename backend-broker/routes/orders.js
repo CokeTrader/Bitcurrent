@@ -2,6 +2,7 @@
 const express = require('express');
 const { query, transaction } = require('../config/database');
 const { verifyToken } = require('../middleware/auth');
+const { validateOrderRequest } = require('../middleware/validation');
 const alpaca = require('../services/alpaca'); // Using Alpaca instead of Binance
 const ledger = require('../services/ledger');
 const { v4: uuidv4 } = require('uuid');
