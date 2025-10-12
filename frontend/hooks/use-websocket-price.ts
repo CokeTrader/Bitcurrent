@@ -40,10 +40,10 @@ export function useWebSocketPrice(symbol: string) {
       try {
         const data = JSON.parse(lastMessage.data)
         
-        // Convert USDT price to GBP (rough conversion for now)
-        // In production, use real GBP/USD rate
-        const gbpUsdRate = 0.82 // Approximate
-        const priceInGbp = parseFloat(data.c) / gbpUsdRate
+        // Convert USDT price to GBP using correct exchange rate
+        // 1 USD = 0.78 GBP (approximate current rate)
+        const usdToGbpRate = 0.78
+        const priceInGbp = parseFloat(data.c) * usdToGbpRate
 
         setPriceData({
           symbol: symbol,
@@ -96,8 +96,8 @@ export function useWebSocketPrices(symbols: string[]) {
     if (lastMessage !== null) {
       try {
         const { data } = JSON.parse(lastMessage.data)
-        const gbpUsdRate = 0.82
-        const priceInGbp = parseFloat(data.c) / gbpUsdRate
+        const usdToGbpRate = 0.78 // 1 USD = 0.78 GBP
+        const priceInGbp = parseFloat(data.c) * usdToGbpRate
 
         // Find which symbol this update is for
         const ourSymbol = Object.entries(symbolMap).find(
