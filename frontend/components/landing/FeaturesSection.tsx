@@ -31,8 +31,8 @@ const features = [
   },
   {
     icon: DollarSign,
-    title: "Competitive Fees",
-    description: "Trade with some of the lowest fees in the UK. Pay 0.1% per trade with volume discounts for active traders.",
+    title: "0.25% Trading Fees",
+    description: "6x cheaper than Coinbase. Save £15 on every £1,000 trade. No hidden fees, no surprises.",
     color: "text-green-500"
   },
   {
@@ -43,8 +43,8 @@ const features = [
   },
   {
     icon: Lock,
-    title: "FCA Registered",
-    description: "Fully compliant with UK financial regulations. Your funds are protected by the Financial Services Compensation Scheme.",
+    title: "Secure & Compliant",
+    description: "UK-based crypto broker. Bank-grade security with cold storage. Your funds protected by industry best practices.",
     color: "text-red-500"
   },
   {
