@@ -15,6 +15,7 @@ const withdrawalsRoutes = require('./routes/withdrawals');
 const adminRoutes = require('./routes/admin');
 const migrateRoutes = require('./routes/migrate');
 const twoFARoutes = require('./routes/2fa');
+const paperFundsRoutes = require('./routes/paper-funds');
 
 // Import services
 const { pool } = require('./config/database');
@@ -130,6 +131,7 @@ app.use('/api/v1/withdrawals', withdrawalsRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/migrate', migrateRoutes);
 app.use('/api/v1/2fa', twoFARoutes);
+app.use('/api/v1/paper', paperFundsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
