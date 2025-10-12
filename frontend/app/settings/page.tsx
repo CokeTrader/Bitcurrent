@@ -13,7 +13,8 @@ import {
   Bell,
   Shield,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  TrendingUp
 } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -72,10 +73,14 @@ export default function SettingsPage() {
 
           {/* Settings Tabs */}
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="profile">
                 <User className="h-4 w-4 mr-2" />
                 Profile
+              </TabsTrigger>
+              <TabsTrigger value="paper-trading">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Paper Trading
               </TabsTrigger>
               <TabsTrigger value="security">
                 <Shield className="h-4 w-4 mr-2" />
@@ -122,6 +127,33 @@ export default function SettingsPage() {
                   </div>
 
                   <Button>Save Changes</Button>
+                </div>
+              </Card>
+            </TabsContent>
+
+            {/* Paper Trading Settings */}
+            <TabsContent value="paper-trading" className="space-y-6">
+              <Card className="p-6">
+                <h2 className="text-2xl font-semibold mb-6">Paper Trading</h2>
+                <p className="text-muted-foreground mb-6">
+                  Practice trading with virtual funds. No risk, real market conditions.
+                </p>
+                
+                <div className="space-y-6">
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                    <h3 className="font-semibold text-primary mb-2">About Paper Trading</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Create up to 2 paper trading accounts with balances between £100 and £100,000. 
+                      Practice your trading strategies with real-time market data without risking real money.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button onClick={() => router.push('/settings/paper-trading')} className="flex-1">
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Manage Paper Accounts
+                    </Button>
+                  </div>
                 </div>
               </Card>
             </TabsContent>

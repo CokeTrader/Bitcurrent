@@ -44,7 +44,7 @@ export default function PaperTradingSettingsPage() {
   const fetchAccounts = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/v1/paper-trading/accounts', {
+      const response = await fetch('https://bitcurrent-production.up.railway.app/api/v1/paper-trading/accounts', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()
@@ -72,7 +72,7 @@ export default function PaperTradingSettingsPage() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/v1/paper-trading/accounts', {
+      const response = await fetch('https://bitcurrent-production.up.railway.app/api/v1/paper-trading/accounts', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -116,7 +116,7 @@ export default function PaperTradingSettingsPage() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/v1/paper-trading/accounts/${id}`, {
+      const response = await fetch(`https://bitcurrent-production.up.railway.app/api/v1/paper-trading/accounts/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
@@ -150,7 +150,7 @@ export default function PaperTradingSettingsPage() {
     setLoading(false)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/v1/paper-trading/accounts/${id}/reset`, {
+      const response = await fetch(`https://bitcurrent-production.up.railway.app/api/v1/paper-trading/accounts/${id}/reset`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       })
