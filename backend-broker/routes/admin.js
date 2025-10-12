@@ -576,7 +576,9 @@ router.post('/grant-paper-funds', async (req, res) => {
     console.error('Grant paper funds error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to grant paper funds'
+      error: 'Failed to grant paper funds',
+      details: error.message,
+      code: error.code
     });
   }
 });
