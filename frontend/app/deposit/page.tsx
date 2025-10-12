@@ -48,10 +48,33 @@ export default function DepositPage() {
     })
   }
 
-  const handleCardDeposit = () => {
-    toast.info("Card deposits coming soon", {
-      description: "This feature will be available after KYC verification"
-    })
+  const handleCardDeposit = async () => {
+    // Redirect to Stripe Checkout
+    try {
+      const response = await fetch('https://bitcurrent-production.up.railway.app/api/v1/deposits/stripe-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ amount: parseFloat(amount) })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.url) {
+        // Redirect to Stripe
+        window.location.href = data.url
+      } else {
+        toast.error("Deposit failed", {
+          description: data.error || "Please try again"
+        })
+      }
+    } catch (error) {
+      toast.error("Connection error", {
+        description: "Please check your internet connection"
+      })
+    }
   }
 
   return (
@@ -83,7 +106,7 @@ export default function DepositPage() {
               </TabsTrigger>
               <TabsTrigger value="card">
                 <CreditCard className="h-4 w-4 mr-2" />
-                Debit/Credit Card
+                Instant Deposit (Stripe)
               </TabsTrigger>
             </TabsList>
 
