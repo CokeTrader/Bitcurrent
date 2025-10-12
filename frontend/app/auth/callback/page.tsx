@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PageLoader } from '@/components/loading/PageLoader'
 
-export default function OAuthCallbackPage() {
+function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -28,5 +28,13 @@ export default function OAuthCallbackPage() {
   }, [searchParams, router])
 
   return <PageLoader message="Completing sign in..." />
+}
+
+export default function OAuthCallbackPage() {
+  return (
+    <Suspense fallback={<PageLoader message="Loading..." />}>
+      <CallbackContent />
+    </Suspense>
+  )
 }
 
