@@ -28,7 +28,7 @@
     "express-request-id": "^3.0.0",
     "express-session": "^1.18.1",
     "express-slow-down": "^3.0.0",
-    "helmet": "^7.1.0",
+    "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.7",
     "passport": "^0.7.0",
