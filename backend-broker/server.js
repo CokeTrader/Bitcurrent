@@ -56,8 +56,30 @@ if (process.env.NODE_ENV === 'production') {
     }
   });
 }
+// CORS configuration - allow multiple frontend URLs
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://bitcurrent.co.uk',
+  'https://www.bitcurrent.co.uk',
+  'https://bitcurrent.vercel.app',
+  'https://bitcurrent-git-main-coketraders-projects.vercel.app'
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.some(allowed => origin.includes(allowed.replace('https://', '').replace('http://', '')))) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy violation'));
+    }
+  },
   credentials: true
 }));
 
