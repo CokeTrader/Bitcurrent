@@ -2,6 +2,32 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "bitcurrent.vercel.app"
+        }
+      ],
+      "destination": "https://bitcurrent.co.uk/:path*",
+      "permanent": true,
+      "statusCode": 308
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "bitcurrent-git-main-coketraders-projects.vercel.app"
+        }
+      ],
+      "destination": "https://bitcurrent.co.uk/:path*",
+      "permanent": true,
+      "statusCode": 308
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/v1/:path*",
