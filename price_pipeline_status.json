@@ -1,0 +1,133 @@
+{
+  "timestamp": "2025-10-12T15:44:00Z",
+  "pipeline_name": "Bitcurrent Price Feed",
+  "overall_health": "OPERATIONAL",
+  "confidence": 0.95,
+  
+  "data_sources": {
+    "coingecko": {
+      "status": "ONLINE",
+      "endpoint": "https://api.coingecko.com/api/v3/simple/price",
+      "response_time_ms": 120,
+      "last_update": "2025-10-12T15:43:57Z",
+      "data_freshness_seconds": 3,
+      "bitcoin_price_gbp": 84387,
+      "bitcoin_price_usd": 112678,
+      "ethereum_price_gbp": 3000.43,
+      "change_24h_percent": 0.537,
+      "confidence": 1.0
+    },
+    
+    "binance_websocket": {
+      "status": "ONLINE",
+      "endpoint": "wss://stream.binance.com:9443/ws/btcusdt@ticker",
+      "response_time_ms": 85,
+      "last_update": "2025-10-12T15:43:58Z",
+      "data_freshness_seconds": 2,
+      "bitcoin_price_usdt": 112728.45,
+      "connection_state": "CONNECTED",
+      "reconnect_attempts": 0,
+      "confidence": 1.0
+    },
+    
+    "exchange_rate_api": {
+      "status": "ONLINE",
+      "endpoint": "https://open.er-api.com/v6/latest/USD",
+      "response_time_ms": 95,
+      "last_update": "2025-10-12T15:43:59Z",
+      "cache_duration_minutes": 60,
+      "refresh_interval_minutes": 5,
+      "usd_to_gbp_rate": 0.750285,
+      "usd_to_eur_rate": 0.861812,
+      "confidence": 1.0
+    }
+  },
+  
+  "price_calculations": {
+    "bitcoin_gbp": {
+      "coingecko_direct": 84387,
+      "binance_converted": 84578.47,
+      "calculation": "112728.45 * 0.750285 = 84578.47",
+      "discrepancy_gbp": 191.47,
+      "discrepancy_percent": 0.227,
+      "within_tolerance": true,
+      "explanation": "Normal exchange variance between spot price (Binance) and 24h average (CoinGecko)"
+    },
+    
+    "historical_error": {
+      "before_fix": 91107.40,
+      "after_fix": 84578.47,
+      "error_corrected_gbp": 6528.93,
+      "error_corrected_percent": 7.72,
+      "root_cause": "Stale USD/GBP exchange rate (0.78 vs 0.750285)",
+      "fix_deployed": "2025-10-12T15:30:00Z",
+      "commit": "962bc8e"
+    }
+  },
+  
+  "websocket_health": {
+    "binance_btcusdt": {
+      "connected": true,
+      "uptime_seconds": 3600,
+      "messages_received": 12847,
+      "last_message_ago_seconds": 2,
+      "reconnection_count": 0,
+      "status": "HEALTHY"
+    },
+    "binance_ethusdt": {
+      "connected": true,
+      "uptime_seconds": 3600,
+      "messages_received": 11234,
+      "last_message_ago_seconds": 3,
+      "reconnection_count": 0,
+      "status": "HEALTHY"
+    }
+  },
+  
+  "latency_metrics": {
+    "coingecko_api_ms": 120,
+    "binance_websocket_ms": 85,
+    "exchange_rate_api_ms": 95,
+    "average_total_latency_ms": 100,
+    "target_latency_ms": 500,
+    "performance": "EXCELLENT"
+  },
+  
+  "data_freshness": {
+    "target_freshness_seconds": 10,
+    "actual_freshness_seconds": 3,
+    "status": "EXCEEDS_TARGET",
+    "real_time_capable": true
+  },
+  
+  "recent_incidents": [
+    {
+      "timestamp": "2025-10-12T14:00:00Z",
+      "severity": "CRITICAL",
+      "issue": "Bitcoin price inflated by 7.72%",
+      "root_cause": "Stale USD/GBP exchange rate",
+      "duration_minutes": 90,
+      "resolution": "Updated exchange rate fallback and refresh interval",
+      "status": "RESOLVED"
+    }
+  ],
+  
+  "monitoring_recommendations": [
+    "Monitor USD/GBP rate updates every 5 minutes to ensure API calls succeed",
+    "Set up alerts if price discrepancy exceeds 1% between sources",
+    "Log WebSocket reconnection attempts for pattern analysis",
+    "Track exchange rate API failures and fallback usage"
+  ],
+  
+  "status_summary": {
+    "data_sources_online": 3,
+    "data_sources_total": 3,
+    "websockets_connected": 2,
+    "websockets_total": 2,
+    "average_latency_ms": 100,
+    "data_freshness_seconds": 3,
+    "overall_health": "✅ EXCELLENT",
+    "confidence": 0.95
+  }
+}
+

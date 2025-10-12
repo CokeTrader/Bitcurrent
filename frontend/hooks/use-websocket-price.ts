@@ -28,7 +28,7 @@ export function useWebSocketPrice(symbol: string) {
   const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.750285) // Default fallback - updated to current rate
   const binanceSymbol = symbolMap[symbol] || 'btcusdt'
 
-  // Fetch live exchange rate on mount and every hour
+  // Fetch live exchange rate on mount and every 5 minutes (FIXED v2.0)
   useEffect(() => {
     const fetchRate = async () => {
       try {
@@ -63,6 +63,7 @@ export function useWebSocketPrice(symbol: string) {
         // Convert USDT price to GBP using LIVE exchange rate
         const priceInGbp = parseFloat(data.c) * usdToGbpRate
         console.log(`[WebSocket] BTC: $${data.c} * ${usdToGbpRate} = £${priceInGbp.toFixed(2)}`)
+        console.log(`[WebSocket] Exchange rate source: ${usdToGbpRate === 0.750285 ? 'CURRENT' : 'OLD/CACHED'}`)
 
         setPriceData({
           symbol: symbol,
@@ -97,7 +98,7 @@ export function useWebSocketPrices(symbols: string[]) {
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({})
   const [usdToGbpRate, setUsdToGbpRate] = useState<number>(0.750285) // Default fallback - updated to current rate
 
-  // Fetch live exchange rate on mount and every hour
+  // Fetch live exchange rate on mount and every 5 minutes (FIXED v2.0)
   useEffect(() => {
     const fetchRate = async () => {
       try {
