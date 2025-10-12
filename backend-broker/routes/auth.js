@@ -3,14 +3,17 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const zxcvbn = require('zxcvbn');
-const passport = require('../config/passport');
+// Temporarily disable passport to debug crash
+// const passport = require('../config/passport');
 const { query } = require('../config/database');
 const { generateToken, generateRefreshToken } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 
-// Google OAuth routes
+// Google OAuth routes - TEMPORARILY DISABLED
+// TODO: Re-enable once backend is stable
+/*
 router.get('/google', passport.authenticate('google', {
   scope: ['profile', 'email'],
   session: false
@@ -31,6 +34,7 @@ router.get('/google/callback',
     res.redirect(`${frontendUrl}/auth/callback?token=${token}&refresh=${refreshToken}`);
   }
 );
+*/
 
 /**
  * POST /auth/register
