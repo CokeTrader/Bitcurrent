@@ -10,6 +10,7 @@ import { AssetIcon } from "@/components/ui/asset-icon"
 import { PriceChange } from "@/components/ui/price-change"
 import { UrgencyBanner } from "@/components/ui/urgency-banner"
 import { SocialProof } from "@/components/ui/social-proof"
+import { MobileCTA } from "@/components/ui/mobile-cta"
 import { useTickerData } from "@/hooks/use-market-data"
 import { 
   ArrowRight, 
@@ -70,6 +71,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <MobileCTA />
       {/* Animated Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-success/5 animate-gradient opacity-50" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
