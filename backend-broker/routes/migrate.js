@@ -93,5 +93,46 @@ router.get('/status', async (req, res) => {
   }
 });
 
+// Add is_admin column and promote admin user
+router.post('/add-admin-column', async (req, res) => {
+  try {
+    console.log('🔄 Adding is_admin column...');
+    
+    // Add is_admin column
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+    `);
+    console.log('✅ is_admin column added');
+    
+    // Create index
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin) WHERE is_admin = TRUE;
+    `);
+    console.log('✅ Index created');
+    
+    // Make admin user an admin
+    const result = await pool.query(`
+      UPDATE users SET is_admin = TRUE WHERE email = 'admin@bitcurrent.co.uk' RETURNING id, email, is_admin;
+    `);
+    
+    if (result.rows.length > 0) {
+      console.log('✅ Admin user promoted:', result.rows[0]);
+    }
+    
+    res.json({
+      success: true,
+      message: 'is_admin column added and admin user promoted',
+      adminUser: result.rows[0] || null
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 
