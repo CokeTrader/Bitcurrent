@@ -1,308 +1,213 @@
-import * as React from "react"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Check, X, Info } from "lucide-react"
-import Link from "next/link"
-import type { Metadata } from 'next'
+"use client"
 
-export const metadata: Metadata = {
-  title: 'Crypto Trading Fees UK | Transparent Pricing - BitCurrent Exchange',
-  description: 'Clear, transparent cryptocurrency trading fees. 0.1% trading fee, free GBP deposits, no hidden charges. Compare our fees with other UK crypto exchanges.',
-  keywords: ['crypto trading fees', 'bitcoin trading fees', 'exchange fees uk', 'crypto fee comparison', 'cheapest crypto exchange uk'],
-  openGraph: {
-    title: 'Transparent Crypto Trading Fees | BitCurrent',
-    description: '0.1% trading fees, free deposits, no hidden charges. See exactly what you pay.',
-    url: 'https://bitcurrent.co.uk/fees',
-  },
-  alternates: {
-    canonical: 'https://bitcurrent.co.uk/fees',
-  },
-}
+import { motion } from "framer-motion"
+import { Card } from "@/components/ui/card"
+import { Check, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function FeesPage() {
+  const comparison = [
+    { platform: "BitCurrent", tradingFee: "0.25%", depositFee: "Free", withdrawalFee: "Free", minDeposit: "£10" },
+    { platform: "Coinbase", tradingFee: "1.49%", depositFee: "Free", withdrawalFee: "£0.15", minDeposit: "£2" },
+    { platform: "Binance", tradingFee: "0.50%", depositFee: "1.8%", withdrawalFee: "Variable", minDeposit: "£15" },
+    { platform: "Kraken", tradingFee: "0.26%", depositFee: "Free", withdrawalFee: "£1.20", minDeposit: "£1" }
+  ]
+
+  const examples = [
+    { amount: 100, bitcurrent: 0.25, coinbase: 1.49, savings: 1.24 },
+    { amount: 500, bitcurrent: 1.25, coinbase: 7.45, savings: 6.20 },
+    { amount: 1000, bitcurrent: 2.50, coinbase: 14.90, savings: 12.40 },
+    { amount: 5000, bitcurrent: 12.50, coinbase: 74.50, savings: 62.00 }
+  ]
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-12">
-          <Badge variant="outline" className="mb-4">
-            No Hidden Fees
-          </Badge>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 font-display">
-            Transparent Pricing
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Simple, honest fees. No surprises. Pay less, trade more.
-          </p>
-        </div>
+      <main className="container mx-auto px-4 py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-5xl mx-auto"
+        >
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold mb-4">
+              Simple, Transparent Pricing
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              No hidden fees. Just 0.25% per trade - 6x cheaper than Coinbase
+            </p>
+          </div>
 
-        {/* Main Fee Table */}
-        <div className="max-w-5xl mx-auto mb-12">
-          <Card className="overflow-hidden">
-            <div className="bg-primary/5 p-6 border-b border-border">
-              <h2 className="text-2xl font-bold">Trading Fees</h2>
-              <p className="text-muted-foreground">Competitive fees that scale with your volume</p>
+          {/* Main Fee Card */}
+          <Card className="p-12 mb-12 text-center bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+            <div className="text-6xl font-bold text-green-600 mb-2">0.25%</div>
+            <div className="text-2xl font-semibold mb-4">Trading Fee</div>
+            <p className="text-lg text-muted-foreground mb-6">
+              Same low fee for all trades, regardless of size
+            </p>
+            <div className="flex justify-center gap-6">
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-600" />
+                <span>No deposit fees</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-600" />
+                <span>No withdrawal fees</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-600" />
+                <span>No hidden charges</span>
+              </div>
             </div>
-            <div className="p-6">
+          </Card>
+
+          {/* Comparison Table */}
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold mb-6 text-center">How We Compare</h2>
+            <Card className="overflow-x-auto">
               <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-4">30-Day Volume</th>
-                    <th className="text-right py-4">Maker Fee</th>
-                    <th className="text-right py-4">Taker Fee</th>
+                <thead className="border-b">
+                  <tr>
+                    <th className="text-left p-4 font-bold">Platform</th>
+                    <th className="text-left p-4 font-bold">Trading Fee</th>
+                    <th className="text-left p-4 font-bold">Deposit Fee</th>
+                    <th className="text-left p-4 font-bold">Withdrawal Fee</th>
+                    <th className="text-left p-4 font-bold">Min. Deposit</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-border">
-                    <td className="py-4">£0 - £10,000</td>
-                    <td className="text-right font-semibold text-primary">0.10%</td>
-                    <td className="text-right font-semibold text-primary">0.15%</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-4">£10,000 - £50,000</td>
-                    <td className="text-right font-semibold text-success">0.08%</td>
-                    <td className="text-right font-semibold text-success">0.12%</td>
-                  </tr>
-                  <tr className="border-b border-border">
-                    <td className="py-4">£50,000 - £100,000</td>
-                    <td className="text-right font-semibold text-success">0.06%</td>
-                    <td className="text-right font-semibold text-success">0.10%</td>
-                  </tr>
-                  <tr>
-                    <td className="py-4">£100,000+</td>
-                    <td className="text-right font-semibold text-success">0.05%</td>
-                    <td className="text-right font-semibold text-success">0.08%</td>
-                  </tr>
+                  {comparison.map((row, idx) => (
+                    <tr key={row.platform} className={`border-b ${idx === 0 ? 'bg-green-50 dark:bg-green-950/20' : ''}`}>
+                      <td className="p-4 font-semibold">
+                        {row.platform}
+                        {idx === 0 && <span className="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded">Best</span>}
+                      </td>
+                      <td className="p-4">{row.tradingFee}</td>
+                      <td className="p-4">{row.depositFee}</td>
+                      <td className="p-4">{row.withdrawalFee}</td>
+                      <td className="p-4">{row.minDeposit}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-            </div>
-          </Card>
-        </div>
-
-        {/* Other Fees */}
-        <div className="max-w-5xl mx-auto mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Deposit Fees */}
-            <Card>
-              <div className="bg-primary/5 p-4 border-b border-border">
-                <h3 className="font-bold">Deposit Fees</h3>
-              </div>
-              <div className="p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-success" />
-                    Faster Payments (Bank Transfer)
-                  </span>
-                  <span className="font-semibold text-success">FREE</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-success" />
-                    BACS Transfer
-                  </span>
-                  <span className="font-semibold text-success">FREE</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Debit Card</span>
-                  <span className="font-semibold">1.5%</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Credit Card</span>
-                  <span className="font-semibold">2.5%</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Withdrawal Fees */}
-            <Card>
-              <div className="bg-primary/5 p-4 border-b border-border">
-                <h3 className="font-bold">Withdrawal Fees</h3>
-              </div>
-              <div className="p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-success" />
-                    GBP (Over £100)
-                  </span>
-                  <span className="font-semibold text-success">FREE</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>GBP (Under £100)</span>
-                  <span className="font-semibold">£2.00</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    Cryptocurrency
-                    <Info className="h-3 w-3 text-muted-foreground" />
-                  </span>
-                  <span className="font-semibold">Network fee only</span>
-                </div>
-              </div>
             </Card>
           </div>
-        </div>
 
-        {/* Comparison Table */}
-        <div className="max-w-5xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold mb-6 text-center">How We Compare</h2>
-          <Card className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left p-4">Exchange</th>
-                  <th className="text-right p-4">Trading Fee</th>
-                  <th className="text-right p-4">Deposit (Bank)</th>
-                  <th className="text-right p-4">Withdrawal (GBP)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-border bg-primary/5">
-                  <td className="p-4 font-bold">BitCurrent</td>
-                  <td className="text-right text-success font-semibold">0.10%</td>
-                  <td className="text-right text-success font-semibold">FREE</td>
-                  <td className="text-right text-success font-semibold">FREE*</td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="p-4">Coinbase</td>
-                  <td className="text-right">1.49%</td>
-                  <td className="text-right">FREE</td>
-                  <td className="text-right">FREE</td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="p-4">Kraken</td>
-                  <td className="text-right">0.26%</td>
-                  <td className="text-right">FREE</td>
-                  <td className="text-right">FREE</td>
-                </tr>
-                <tr>
-                  <td className="p-4">Crypto.com</td>
-                  <td className="text-right">0.40%</td>
-                  <td className="text-right">FREE</td>
-                  <td className="text-right">£1.00</td>
-                </tr>
-              </tbody>
-            </table>
-            <div className="p-4 text-xs text-muted-foreground">
-              *Free for withdrawals over £100. £2 fee for withdrawals under £100.
+          {/* Savings Examples */}
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold mb-6 text-center">How Much You Save</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {examples.map((example) => (
+                <Card key={example.amount} className="p-6">
+                  <div className="text-2xl font-bold mb-4">£{example.amount} Trade</div>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">BitCurrent Fee:</span>
+                      <span className="font-semibold text-green-600">£{example.bitcurrent.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Coinbase Fee:</span>
+                      <span className="font-semibold">£{example.coinbase.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t">
+                    <div className="flex justify-between text-lg">
+                      <span className="font-bold">You Save:</span>
+                      <span className="font-bold text-green-600">£{example.savings.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
-          </Card>
-        </div>
+          </div>
 
-        {/* Fee Savings Calculator */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <Card className="p-6 bg-gradient-to-br from-success/5 to-primary/5">
-            <h3 className="text-2xl font-bold mb-4">Potential Savings</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-4 border-b border-border">
-                <div>
-                  <div className="font-semibold">Trading £1,000/month</div>
-                  <div className="text-sm text-muted-foreground">BitCurrent vs Coinbase</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-success">Save £167/year</div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center pb-4 border-b border-border">
-                <div>
-                  <div className="font-semibold">Trading £5,000/month</div>
-                  <div className="text-sm text-muted-foreground">BitCurrent vs Coinbase</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-success">Save £834/year</div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-semibold">Trading £10,000/month</div>
-                  <div className="text-sm text-muted-foreground">BitCurrent vs Coinbase</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-success">Save £1,668/year</div>
-                </div>
-              </div>
+          {/* Additional Fees */}
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold mb-6 text-center">Complete Fee Breakdown</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <Check className="h-5 w-5 text-green-600" />
+                  Free Services
+                </h3>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>GBP deposits (via Stripe)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Bank withdrawals</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Account maintenance</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Price alerts</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Real-time market data</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Advanced charts</span>
+                  </li>
+                </ul>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  <X className="h-5 w-5 text-red-600" />
+                  What We Don't Charge
+                </h3>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Inactivity fees</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Account opening fees</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Minimum balance fees</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Statement fees</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Customer support fees</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Hidden spreads</span>
+                  </li>
+                </ul>
+              </Card>
             </div>
-          </Card>
-        </div>
-
-        {/* What's Included */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold mb-6 text-center">What's Included (No Extra Cost)</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              'Real-time market data',
-              'Advanced trading charts',
-              'Mobile app access',
-              '24/7 customer support',
-              'API access',
-              'Tax reports',
-              'Portfolio tracking',
-              'Price alerts',
-              'Instant GBP deposits',
-              'Cold storage security',
-              'Two-factor authentication',
-              '£85,000 insurance'
-            ].map((feature) => (
-              <div key={feature} className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
-                  <Check className="h-4 w-4 text-success" />
-                </div>
-                <span>{feature}</span>
-              </div>
-            ))}
           </div>
-        </div>
 
-        {/* FAQ Section */}
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-6">Fee FAQs</h2>
-          <div className="space-y-4">
-            <Card className="p-6">
-              <h3 className="font-bold mb-2">What's the difference between maker and taker fees?</h3>
-              <p className="text-muted-foreground">
-                Maker fees apply when you place a limit order that's added to the order book (providing liquidity). Taker fees apply when you place a market order that immediately matches an existing order (taking liquidity). Maker fees are lower (0.10% vs 0.15%) to encourage liquidity provision.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="font-bold mb-2">Are there any hidden fees?</h3>
-              <p className="text-muted-foreground">
-                No. All fees are clearly displayed before you confirm any transaction. We never charge unexpected or hidden fees. The only variable cost is blockchain network fees for cryptocurrency withdrawals, which we pass through at cost with no markup.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="font-bold mb-2">How do I qualify for lower fees?</h3>
-              <p className="text-muted-foreground">
-                Fee tiers are based on your 30-day trading volume. Trade £10,000 or more per month to automatically qualify for reduced fees. Institutional traders can contact us for custom fee schedules.
-              </p>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="font-bold mb-2">Do you charge inactivity fees?</h3>
-              <p className="text-muted-foreground">
-                No. Unlike some exchanges, BitCurrent never charges inactivity fees. Your account remains free regardless of how often you trade.
-              </p>
-            </Card>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="max-w-4xl mx-auto mt-12">
-          <Card className="p-8 text-center bg-gradient-to-br from-primary/5 to-success/5">
-            <h2 className="text-2xl font-bold mb-4">Start Saving on Trading Fees</h2>
-            <p className="text-muted-foreground mb-6">
-              Join BitCurrent and pay 10x less in fees compared to mainstream exchanges. More profits in your pocket.
+          {/* CTA */}
+          <Card className="p-8 text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+            <h2 className="text-3xl font-bold mb-4">Start Saving on Fees Today</h2>
+            <p className="text-lg mb-6 opacity-90">
+              Join 500+ traders who switched to BitCurrent and saved thousands
             </p>
             <Link href="/auth/register">
-              <Button size="lg">
-                Create Free Account
+              <Button size="lg" variant="secondary" className="font-bold">
+                Get £10 Free - Sign Up Now →
               </Button>
             </Link>
           </Card>
-        </div>
-      </div>
+        </motion.div>
+      </main>
     </div>
   )
 }
-
