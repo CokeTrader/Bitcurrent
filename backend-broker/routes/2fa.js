@@ -3,12 +3,12 @@ const express = require('express');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
 const { query } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Generate 2FA secret and QR code
-router.post('/setup', authenticateToken, async (req, res) => {
+router.post('/setup', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
     
@@ -57,7 +57,7 @@ router.post('/setup', authenticateToken, async (req, res) => {
 });
 
 // Verify and enable 2FA
-router.post('/verify', authenticateToken, async (req, res) => {
+router.post('/verify', verifyToken, async (req, res) => {
   try {
     const { token } = req.body;
     const userId = req.user.id;
@@ -119,7 +119,7 @@ router.post('/verify', authenticateToken, async (req, res) => {
 });
 
 // Disable 2FA
-router.post('/disable', authenticateToken, async (req, res) => {
+router.post('/disable', verifyToken, async (req, res) => {
   try {
     const { token, password } = req.body;
     const userId = req.user.id;
@@ -190,7 +190,7 @@ router.post('/disable', authenticateToken, async (req, res) => {
 });
 
 // Check 2FA status
-router.get('/status', authenticateToken, async (req, res) => {
+router.get('/status', verifyToken, async (req, res) => {
   try {
     const user = await query(
       'SELECT two_factor_enabled FROM users WHERE id = $1',
