@@ -31,9 +31,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Buy Bitcoin & Crypto in UK | BitCurrent Exchange - FCA Regulated",
-  description: "Trade Bitcoin, Ethereum & 100+ cryptocurrencies with GBP. FCA regulated, £85k insured, 0.1% fees. Instant deposits & 95% cold storage. Start trading today.",
-  keywords: ["buy bitcoin uk", "crypto exchange uk", "buy ethereum uk", "cryptocurrency trading uk", "buy crypto with gbp", "fca regulated crypto exchange", "bitcoin uk", "ethereum uk"],
+  title: "Buy Bitcoin UK - 0.25% Fees | BitCurrent Crypto Broker",
+  description: "UK crypto broker with 0.25% trading fees - 6x cheaper than Coinbase. Instant GBP deposits via Stripe. Trade Bitcoin, Ethereum & more. Get £10 signup bonus.",
+  keywords: ["buy bitcoin uk", "crypto broker uk", "bitcoin trading uk", "buy ethereum uk", "cryptocurrency uk", "cheap crypto fees uk", "stripe crypto deposit", "bitcoin uk", "coinbase alternative"],
   authors: [{ name: "BitCurrent Exchange" }],
   icons: {
     icon: "/favicon.ico",
