@@ -1,138 +1,251 @@
 /**
  * Kraken API Integration
- * Execute REAL trades through Kraken
+ * 
+ * Alternative exchange for real Bitcoin trading
+ * - Excellent liquidity
+ * - Supports GBP pairs
+ * - Robust withdrawal system
+ * 
+ * Documentation: https://docs.kraken.com/rest/
  */
 
 const crypto = require('crypto');
 const axios = require('axios');
-const logger = require('../utils/logger');
+const querystring = require('querystring');
 
 class KrakenAPI {
   constructor() {
     this.apiKey = process.env.KRAKEN_API_KEY;
     this.apiSecret = process.env.KRAKEN_API_SECRET;
-    this.baseUrl = 'https://api.kraken.com';
+    this.baseURL = 'https://api.kraken.com';
   }
 
   /**
-   * Generate API signature (Kraken-specific)
+   * Generate API signature for Kraken
    */
-  generateSignature(path, nonce, postData) {
-    const message = path + crypto
-      .createHash('sha256')
-      .update(nonce + postData)
-      .digest();
-
-    return crypto
-      .createHmac('sha512', Buffer.from(this.apiSecret, 'base64'))
-      .update(message)
-      .digest('base64');
+  generateSignature(path, data, nonce) {
+    const message = querystring.stringify(data);
+    const secret = Buffer.from(this.apiSecret, 'base64');
+    const hash = crypto.createHash('sha256').update(nonce + message).digest();
+    const hmac = crypto.createHmac('sha512', secret);
+    hmac.update(path + hash);
+    return hmac.digest('base64');
   }
 
   /**
    * Make authenticated API request
    */
-  async request(endpoint, params = {}) {
+  async makePrivateRequest(endpoint, data = {}) {
     const path = `/0/private/${endpoint}`;
     const nonce = Date.now() * 1000;
-    const postData = new URLSearchParams({ ...params, nonce }).toString();
-    const signature = this.generateSignature(path, nonce.toString(), postData);
+    
+    const postData = {
+      nonce,
+      ...data
+    };
+
+    const signature = this.generateSignature(path, postData, nonce);
 
     try {
-      const response = await axios.post(`${this.baseUrl}${path}`, postData, {
-        headers: {
-          'API-Key': this.apiKey,
-          'API-Sign': signature,
-          'Content-Type': 'application/x-www-form-urlencoded'
+      const response = await axios.post(
+        `${this.baseURL}${path}`,
+        querystring.stringify(postData),
+        {
+          headers: {
+            'API-Key': this.apiKey,
+            'API-Sign': signature,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         }
-      });
+      );
 
       if (response.data.error && response.data.error.length > 0) {
-        throw new Error(response.data.error.join(', '));
+        return {
+          success: false,
+          error: response.data.error.join(', ')
+        };
       }
 
-      return response.data.result;
+      return {
+        success: true,
+        data: response.data.result
+      };
     } catch (error) {
-      logger.error('Kraken API request failed', {
-        endpoint,
+      console.error('Kraken API Error:', error.message);
+      return {
+        success: false,
         error: error.message
-      });
-      throw error;
+      };
     }
   }
 
   /**
-   * Place order on Kraken
+   * Make public API request
    */
-  async placeOrder(orderData) {
-    const { pair, side, amount, price, type } = orderData;
+  async makePublicRequest(endpoint, params = {}) {
+    try {
+      const queryString = querystring.stringify(params);
+      const url = `${this.baseURL}/0/public/${endpoint}${queryString ? '?' + queryString : ''}`;
+      
+      const response = await axios.get(url);
 
-    const params = {
-      pair: 'X' + pair.replace('/', ''), // BTC/USD → XBTCUSD
-      type: side,
-      ordertype: type,
-      volume: amount.toString()
-    };
+      if (response.data.error && response.data.error.length > 0) {
+        return {
+          success: false,
+          error: response.data.error.join(', ')
+        };
+      }
 
-    if (type === 'limit') {
-      params.price = price.toString();
+      return {
+        success: true,
+        data: response.data.result
+      };
+    } catch (error) {
+      console.error('Kraken Public API Error:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Get account balance
+   */
+  async getBalance() {
+    return await this.makePrivateRequest('Balance');
+  }
+
+  /**
+   * Get current ticker information
+   */
+  async getTicker(pair = 'XBTGBP') {
+    const result = await this.makePublicRequest('Ticker', { pair });
+    
+    if (result.success) {
+      const ticker = result.data[pair];
+      return {
+        success: true,
+        price: parseFloat(ticker.c[0]), // Last trade price
+        bid: parseFloat(ticker.b[0]),
+        ask: parseFloat(ticker.a[0]),
+        volume24h: parseFloat(ticker.v[1]),
+        low24h: parseFloat(ticker.l[1]),
+        high24h: parseFloat(ticker.h[1])
+      };
     }
 
-    const result = await this.request('AddOrder', params);
-
-    const orderId = result.txid[0];
-
-    logger.info('Kraken order placed', {
-      orderId,
-      pair,
-      side,
-      amount
-    });
-
-    return {
-      orderId,
-      status: 'pending',
-      fillPrice: price,
-      exchange: 'kraken'
-    };
+    return result;
   }
 
   /**
-   * Get order status
+   * Buy Bitcoin with GBP
+   * @param {number} gbpAmount - Amount in GBP
    */
-  async getOrder(orderId) {
-    const result = await this.request('QueryOrders', {
-      txid: orderId
-    });
-    return result[orderId];
+  async buyBitcoin(gbpAmount) {
+    const orderData = {
+      ordertype: 'market',
+      type: 'buy',
+      volume: gbpAmount, // Kraken will convert to BTC equivalent
+      pair: 'XBTGBP'
+    };
+
+    const result = await this.makePrivateRequest('AddOrder', orderData);
+
+    if (result.success) {
+      return {
+        success: true,
+        orderId: result.data.txid[0],
+        message: `Successfully bought Bitcoin with £${gbpAmount}`,
+        details: result.data
+      };
+    }
+
+    return result;
   }
 
   /**
-   * Cancel order
+   * Sell Bitcoin for GBP
+   * @param {number} btcAmount - Amount in BTC
+   */
+  async sellBitcoin(btcAmount) {
+    const orderData = {
+      ordertype: 'market',
+      type: 'sell',
+      volume: btcAmount,
+      pair: 'XBTGBP'
+    };
+
+    const result = await this.makePrivateRequest('AddOrder', orderData);
+
+    if (result.success) {
+      return {
+        success: true,
+        orderId: result.data.txid[0],
+        message: `Successfully sold ${btcAmount} BTC`,
+        details: result.data
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * Withdraw Bitcoin to external wallet
+   * @param {string} address - Bitcoin wallet address
+   * @param {number} amount - Amount of BTC to withdraw
+   */
+  async withdrawBitcoin(address, amount) {
+    // First, add the withdrawal address (one-time setup)
+    // Then initiate withdrawal
+    
+    const withdrawalData = {
+      asset: 'XBT',
+      key: address, // Must be pre-registered in Kraken
+      amount: amount.toString()
+    };
+
+    const result = await this.makePrivateRequest('Withdraw', withdrawalData);
+
+    if (result.success) {
+      return {
+        success: true,
+        refId: result.data.refid,
+        message: `Successfully initiated withdrawal of ${amount} BTC to ${address}`,
+        details: result.data
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * Get open orders
+   */
+  async getOpenOrders() {
+    return await this.makePrivateRequest('OpenOrders');
+  }
+
+  /**
+   * Get closed orders
+   */
+  async getClosedOrders() {
+    return await this.makePrivateRequest('ClosedOrders');
+  }
+
+  /**
+   * Cancel an order
    */
   async cancelOrder(orderId) {
-    return await this.request('CancelOrder', {
-      txid: orderId
-    });
+    return await this.makePrivateRequest('CancelOrder', { txid: orderId });
   }
 
   /**
-   * Get account balances
+   * Get trading fees
    */
-  async getBalances() {
-    return await this.request('Balance');
-  }
-
-  /**
-   * Get ticker information
-   */
-  async getTicker(pair) {
-    const response = await axios.get(`${this.baseUrl}/0/public/Ticker`, {
-      params: { pair: 'X' + pair.replace('/', '') }
-    });
-    return response.data.result;
+  async getTradeFees() {
+    return await this.makePrivateRequest('TradeVolume', { pair: 'XBTGBP' });
   }
 }
 
-module.exports = new KrakenAPI();
-
+module.exports = KrakenAPI;

@@ -25,6 +25,7 @@ const migrateRoutes = require('./routes/migrate');
 const paperTradingRoutes = require('./routes/paper-trading');
 const paperOrdersRoutes = require('./routes/paper-orders');
 const stripeWebhooksRoutes = require('./routes/stripe-webhooks');
+const realTradingRoutes = require('./routes/real-trading');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -175,6 +176,7 @@ app.use('/api/v1/admin/dashboard', adminDashboardRoutes);
 app.use('/api/v1/migrate', migrateRoutes);
 app.use('/api/v1/paper-trading', paperTradingRoutes);
 app.use('/api/v1/paper-orders', paperOrdersRoutes);
+app.use('/api/v1/real-trading', realTradingRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
