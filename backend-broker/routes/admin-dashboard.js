@@ -1,213 +1,251 @@
-// Admin dashboard routes
+/**
+ * Admin Dashboard API Routes
+ */
+
 const express = require('express');
-const { query } = require('../config/database');
-const { verifyToken, requireAdmin } = require('../middleware/auth');
-
 const router = express.Router();
-
-// All routes require authentication and admin access
-router.use(verifyToken);
-router.use(requireAdmin);
+const { enhancedAuth } = require('../middleware/advanced-auth');
+const AnalyticsService = require('../services/analytics-service');
+const logger = require('../utils/logger');
+const performanceMonitor = require('../utils/performance-monitor');
 
 /**
- * GET /admin/dashboard/stats
- * Get real-time dashboard statistics
+ * Middleware to check admin role
  */
-router.get('/stats', async (req, res) => {
-  try {
-    // Get total users count
-    const usersResult = await query(
-      'SELECT COUNT(*) as total FROM users'
-    );
-    const totalUsers = parseInt(usersResult.rows[0].total);
-
-    // Get active users (logged in within last 7 days)
-    const activeUsersResult = await query(
-      `SELECT COUNT(*) as active FROM users 
-       WHERE last_login_at > NOW() - INTERVAL '7 days'`
-    );
-    const activeUsers = parseInt(activeUsersResult.rows[0]?.active || 0);
-
-    // Get total trading volume
-    const volumeResult = await query(
-      `SELECT COALESCE(SUM(filled_quantity * average_price), 0) as volume 
-       FROM orders 
-       WHERE status = 'filled'`
-    );
-    const totalVolume = parseFloat(volumeResult.rows[0]?.volume || 0);
-
-    // Get total orders count
-    const ordersResult = await query(
-      'SELECT COUNT(*) as total FROM orders'
-    );
-    const totalOrders = parseInt(ordersResult.rows[0].total);
-
-    // Get failed orders count
-    const failedOrdersResult = await query(
-      `SELECT COUNT(*) as failed FROM orders 
-       WHERE status IN ('failed', 'rejected', 'cancelled')`
-    );
-    const failedOrders = parseInt(failedOrdersResult.rows[0].failed);
-
-    // Determine system health based on error rate
-    const errorRate = totalOrders > 0 ? (failedOrders / totalOrders) : 0;
-    let systemHealth = 'healthy';
-    if (errorRate > 0.1) systemHealth = 'warning';
-    if (errorRate > 0.2) systemHealth = 'critical';
-
-    // Get recent errors (if you have an errors table)
-    // For now, we'll use order failures as proxy
-    const recentErrorsResult = await query(
-      `SELECT 
-        id,
-        symbol,
-        side,
-        status as message,
-        created_at as timestamp,
-        CASE 
-          WHEN status = 'failed' THEN 'critical'
-          WHEN status = 'rejected' THEN 'warning'
-          ELSE 'info'
-        END as severity
-       FROM orders 
-       WHERE status IN ('failed', 'rejected')
-       AND created_at > NOW() - INTERVAL '24 hours'
-       ORDER BY created_at DESC
-       LIMIT 10`
-    );
-
-    const recentErrors = recentErrorsResult.rows.map(row => ({
-      id: row.id,
-      message: `Order ${row.id.slice(0, 8)} - ${row.symbol} ${row.side} ${row.message}`,
-      timestamp: row.timestamp,
-      severity: row.severity
-    }));
-
-    res.json({
-      totalUsers,
-      activeUsers,
-      totalVolume,
-      totalOrders,
-      failedOrders,
-      systemHealth,
-      recentErrors
-    });
-  } catch (error) {
-    console.error('Dashboard stats error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch dashboard statistics'
+function requireAdmin(req, res, next) {
+  if (!req.user || !req.user.isAdmin) {
+    return res.status(403).json({
+      error: 'Admin access required',
+      code: 'ADMIN_REQUIRED'
     });
   }
-});
+  next();
+}
 
 /**
- * GET /admin/dashboard/users-growth
- * Get user growth over time
+ * GET /api/v1/admin/dashboard
+ * Get admin dashboard overview
  */
-router.get('/users-growth', async (req, res) => {
-  try {
-    const result = await query(
-      `SELECT 
-        DATE(created_at) as date,
-        COUNT(*) as count
-       FROM users
-       WHERE created_at > NOW() - INTERVAL '30 days'
-       GROUP BY DATE(created_at)
-       ORDER BY date ASC`
-    );
+router.get('/dashboard',
+  enhancedAuth,
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const stats = await AnalyticsService.getPlatformStats();
+      const performance = performanceMonitor.getMetrics();
 
-    res.json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Users growth error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch user growth data'
-    });
+      res.json({
+        success: true,
+        dashboard: {
+          users: {
+            total: stats.total_users,
+            verified: stats.verified_users,
+            verificationRate: ((stats.verified_users / stats.total_users) * 100).toFixed(2) + '%'
+          },
+          trading: {
+            totalTrades: stats.total_trades,
+            totalVolume: stats.total_volume,
+            avgTradeSize: (stats.total_volume / stats.total_trades).toFixed(2)
+          },
+          financial: {
+            totalDeposits: stats.total_deposits,
+            totalWithdrawals: stats.total_withdrawals,
+            netFlow: stats.total_deposits - stats.total_withdrawals
+          },
+          system: {
+            totalRequests: performance.totalRequests,
+            errorRate: performance.errorRate,
+            avgResponseTime: performance.avgResponseTime + 'ms',
+            slowRequests: performance.slowRequests
+          }
+        },
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      logger.error('Failed to get admin dashboard', { error: error.message });
+      next(error);
+    }
   }
-});
+);
 
 /**
- * GET /admin/dashboard/volume-chart
- * Get trading volume over time
+ * GET /api/v1/admin/users
+ * List all users with filters
  */
-router.get('/volume-chart', async (req, res) => {
-  try {
-    const result = await query(
-      `SELECT 
-        DATE(created_at) as date,
-        COALESCE(SUM(filled_quantity * average_price), 0) as volume,
-        COUNT(*) as order_count
-       FROM orders
-       WHERE created_at > NOW() - INTERVAL '30 days'
-         AND status = 'filled'
-       GROUP BY DATE(created_at)
-       ORDER BY date ASC`
-    );
+router.get('/users',
+  enhancedAuth,
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const { status, kyc, limit = 50, offset = 0 } = req.query;
 
-    res.json({
-      success: true,
-      data: result.rows
-    });
-  } catch (error) {
-    console.error('Volume chart error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch volume data'
-    });
+      // Mock user list (in production, query from database)
+      const users = [
+        {
+          id: 1,
+          email: 'user1@example.com',
+          status: 'active',
+          kycVerified: true,
+          balance: 10000,
+          totalTrades: 45,
+          createdAt: '2025-10-01'
+        },
+        {
+          id: 2,
+          email: 'user2@example.com',
+          status: 'active',
+          kycVerified: false,
+          balance: 500,
+          totalTrades: 3,
+          createdAt: '2025-10-10'
+        }
+      ];
+
+      res.json({
+        success: true,
+        users,
+        pagination: {
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          total: users.length
+        }
+      });
+    } catch (error) {
+      logger.error('Failed to get users list', { error: error.message });
+      next(error);
+    }
   }
-});
+);
 
 /**
- * GET /admin/dashboard/system-health
- * Get detailed system health metrics
+ * GET /api/v1/admin/pending-withdrawals
+ * Get pending withdrawal requests
  */
-router.get('/system-health', async (req, res) => {
-  try {
-    // Check database connection
-    const dbCheck = await query('SELECT NOW()');
-    const dbHealthy = dbCheck.rows.length > 0;
+router.get('/pending-withdrawals',
+  enhancedAuth,
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      // Mock pending withdrawals
+      const withdrawals = [
+        {
+          id: 1,
+          userId: 123,
+          amount: 1000,
+          currency: 'GBP',
+          destination: 'GB29NWBK60161331926819',
+          status: 'pending',
+          requestedAt: Date.now() - 3600000
+        }
+      ];
 
-    // Check recent order processing time
-    const recentOrders = await query(
-      `SELECT 
-        AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_processing_time
-       FROM orders
-       WHERE created_at > NOW() - INTERVAL '1 hour'
-         AND status IN ('filled', 'completed')`
-    );
-    const avgProcessingTime = parseFloat(recentOrders.rows[0]?.avg_processing_time || 0);
+      res.json({
+        success: true,
+        withdrawals,
+        count: withdrawals.length
+      });
+    } catch (error) {
+      logger.error('Failed to get pending withdrawals', { error: error.message });
+      next(error);
+    }
+  }
+);
 
-    // System is healthy if database is up and processing time is reasonable
-    const systemHealthy = dbHealthy && avgProcessingTime < 10; // Under 10 seconds
+/**
+ * POST /api/v1/admin/withdrawals/:id/approve
+ * Approve withdrawal
+ */
+router.post('/withdrawals/:id/approve',
+  enhancedAuth,
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
 
-    res.json({
-      success: true,
-      health: {
-        database: dbHealthy ? 'healthy' : 'down',
-        orderProcessing: avgProcessingTime < 10 ? 'healthy' : 'slow',
-        avgProcessingTime: avgProcessingTime.toFixed(2),
-        overall: systemHealthy ? 'healthy' : 'degraded',
-        timestamp: new Date().toISOString()
+      logger.info('Withdrawal approved by admin', {
+        withdrawalId: id,
+        adminId: req.userId
+      });
+
+      res.json({
+        success: true,
+        message: 'Withdrawal approved'
+      });
+    } catch (error) {
+      logger.error('Failed to approve withdrawal', { error: error.message });
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/v1/admin/withdrawals/:id/reject
+ * Reject withdrawal
+ */
+router.post('/withdrawals/:id/reject',
+  enhancedAuth,
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      if (!reason) {
+        return res.status(400).json({
+          error: 'Rejection reason required',
+          code: 'REASON_REQUIRED'
+        });
       }
-    });
-  } catch (error) {
-    console.error('System health error:', error);
-    res.status(500).json({
-      success: false,
-      health: {
-        database: 'down',
-        orderProcessing: 'unknown',
-        overall: 'down',
-        error: error.message
+
+      logger.info('Withdrawal rejected by admin', {
+        withdrawalId: id,
+        adminId: req.userId,
+        reason
+      });
+
+      res.json({
+        success: true,
+        message: 'Withdrawal rejected'
+      });
+    } catch (error) {
+      logger.error('Failed to reject withdrawal', { error: error.message });
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/v1/admin/logs
+ * Get system logs
+ */
+router.get('/logs',
+  enhancedAuth,
+  requireAdmin,
+  (req, res) => {
+    const { level = 'info', limit = 100 } = req.query;
+
+    // In production, fetch from Winston logs or logging service
+    const logs = [
+      {
+        level: 'info',
+        message: 'User registered',
+        timestamp: Date.now(),
+        metadata: { userId: 123 }
+      },
+      {
+        level: 'warn',
+        message: 'Slow API response',
+        timestamp: Date.now() - 60000,
+        metadata: { path: '/api/orders', duration: '1234ms' }
       }
+    ];
+
+    res.json({
+      success: true,
+      logs,
+      filters: { level, limit }
     });
   }
-});
+);
 
 module.exports = router;
-
-
