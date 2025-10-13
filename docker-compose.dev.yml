@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: bitcurrent-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=bitcurrent
+      - POSTGRES_USER=bitcurrent
+      - POSTGRES_PASSWORD=bitcurrent_dev_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backend-broker/scripts/db-setup.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bitcurrent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: bitcurrent-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend-broker
+      dockerfile: Dockerfile.dev
+    container_name: bitcurrent-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://bitcurrent:bitcurrent_dev_password@postgres:5432/bitcurrent
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=dev_jwt_secret_change_in_production_minimum_32_characters_long
+      - PORT=4000
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - ./backend-broker:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: bitcurrent-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+      - NEXT_PUBLIC_STRIPE_KEY=pk_test_51234567890
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  postgres-data:
+  redis-data:
+
