@@ -47,6 +47,7 @@ const alpaca = require('./services/alpaca'); // Using Alpaca for crypto trading
 const advancedOrderService = require('./services/advanced-order-service');
 const tradingBotService = require('./services/trading-bot-service');
 const priceAlertService = require('./services/price-alert-service');
+const performanceMonitor = require('./optimization/performance-monitor');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
