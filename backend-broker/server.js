@@ -27,6 +27,7 @@ const paperOrdersRoutes = require('./routes/paper-orders');
 const stripeWebhooksRoutes = require('./routes/stripe-webhooks');
 const realTradingRoutes = require('./routes/real-trading');
 const advancedOrdersRoutes = require('./routes/advanced-orders');
+const multiAssetRoutes = require('./routes/multi-asset');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -180,6 +181,7 @@ app.use('/api/v1/paper-trading', paperTradingRoutes);
 app.use('/api/v1/paper-orders', paperOrdersRoutes);
 app.use('/api/v1/real-trading', realTradingRoutes);
 app.use('/api/v1/advanced-orders', advancedOrdersRoutes);
+app.use('/api/v1/multi-asset', multiAssetRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
