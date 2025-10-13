@@ -1,350 +1,262 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { motion } from "framer-motion"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  User,
-  Lock,
-  Bell,
-  Shield,
-  Trash2,
-  AlertTriangle,
-  TrendingUp
-} from "lucide-react"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { useState } from 'react';
+import { User, Bell, Shield, Key, Mail, Smartphone } from 'lucide-react';
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false)
-  const [deleteConfirmText, setDeleteConfirmText] = React.useState("")
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== "DELETE") {
-      toast.error("Please type DELETE to confirm")
-      return
-    }
-
-    // Call API to delete account
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8080/api/v1/account/delete', {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        toast.success("Account deleted successfully")
-        // Clear session
-        document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-        localStorage.clear()
-        router.push('/auth/login')
-      } else {
-        toast.error("Failed to delete account")
-      }
-    } catch (error) {
-      toast.error("Error deleting account")
-    }
-  }
+  const [activeTab, setActiveTab] = useState('profile');
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto space-y-8"
-        >
-          {/* Header */}
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Settings</h1>
-            <p className="text-muted-foreground">
-              Manage your account settings and preferences
-            </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+          Settings
+        </h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <nav className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-2">
+              {[
+                { id: 'profile', label: 'Profile', icon: User },
+                { id: 'notifications', label: 'Notifications', icon: Bell },
+                { id: 'security', label: 'Security', icon: Shield },
+                { id: 'api', label: 'API Keys', icon: Key }
+              ].map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Settings Tabs */}
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="profile">
-                <User className="h-4 w-4 mr-2" />
-                Profile
-              </TabsTrigger>
-              <TabsTrigger value="paper-trading">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Paper Trading
-              </TabsTrigger>
-              <TabsTrigger value="security">
-                <Shield className="h-4 w-4 mr-2" />
-                Security
-              </TabsTrigger>
-              <TabsTrigger value="notifications">
-                <Bell className="h-4 w-4 mr-2" />
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger value="danger">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Danger Zone
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Profile Settings */}
-            <TabsContent value="profile" className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-2xl font-semibold mb-6">Profile Information</h2>
-                
-                <div className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>First Name</Label>
-                      <Input placeholder="John" />
-                    </div>
-                    <div>
-                      <Label>Last Name</Label>
-                      <Input placeholder="Doe" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Email Address</Label>
-                    <Input type="email" placeholder="john@example.com" disabled />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Email cannot be changed for security reasons
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label>Phone Number</Label>
-                    <Input type="tel" placeholder="+44 7700 900000" />
-                  </div>
-
-                  <Button>Save Changes</Button>
-                </div>
-              </Card>
-            </TabsContent>
-
-            {/* Paper Trading Settings */}
-            <TabsContent value="paper-trading" className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-2xl font-semibold mb-6">Paper Trading</h2>
-                <p className="text-muted-foreground mb-6">
-                  Practice trading with virtual funds. No risk, real market conditions.
-                </p>
-                
-                <div className="space-y-6">
-                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-                    <h3 className="font-semibold text-primary mb-2">About Paper Trading</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Create up to 2 paper trading accounts with balances between £100 and £100,000. 
-                      Practice your trading strategies with real-time market data without risking real money.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Button onClick={() => router.push('/settings/paper-trading')} className="flex-1">
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Manage Paper Accounts
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </TabsContent>
-
-            {/* Security Settings */}
-            <TabsContent value="security" className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-2xl font-semibold mb-6">Security Settings</h2>
-                
-                <div className="space-y-6">
-                  {/* Change Password */}
-                  <div>
-                    <h3 className="font-semibold mb-4">Change Password</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Current Password</Label>
-                        <Input type="password" />
-                      </div>
-                      <div>
-                        <Label>New Password</Label>
-                        <Input type="password" />
-                      </div>
-                      <div>
-                        <Label>Confirm New Password</Label>
-                        <Input type="password" />
-                      </div>
-                      <Button>Update Password</Button>
-                    </div>
-                  </div>
-
-                  {/* 2FA */}
-                  <div className="pt-6 border-t">
-                    <h3 className="font-semibold mb-4">Two-Factor Authentication</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Add an extra layer of security to your account
-                    </p>
-                    <Button 
-                      variant="outline"
-                      onClick={() => router.push('/settings/2fa')}
-                    >
-                      <Lock className="h-4 w-4 mr-2" />
-                      Manage 2FA
-                    </Button>
-                  </div>
-
-                  {/* Active Sessions */}
-                  <div className="pt-6 border-t">
-                    <h3 className="font-semibold mb-4">Active Sessions</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Manage devices that are currently logged in to your account
-                    </p>
-                    <Button variant="outline">View Active Sessions</Button>
-                  </div>
-                </div>
-              </Card>
-            </TabsContent>
-
-            {/* Notifications */}
-            <TabsContent value="notifications" className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-2xl font-semibold mb-6">Notification Preferences</h2>
-                
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Email Notifications</p>
-                      <p className="text-sm text-muted-foreground">Receive email updates about your account</p>
-                    </div>
-                    <Button variant="outline">Enable</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Trade Notifications</p>
-                      <p className="text-sm text-muted-foreground">Get notified when your orders are filled</p>
-                    </div>
-                    <Button variant="outline">Enable</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Price Alerts</p>
-                      <p className="text-sm text-muted-foreground">Receive alerts when prices reach certain levels</p>
-                    </div>
-                    <Button variant="outline">Enable</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Security Alerts</p>
-                      <p className="text-sm text-muted-foreground">Important security notifications</p>
-                    </div>
-                    <Button variant="outline">Enabled</Button>
-                  </div>
-                </div>
-              </Card>
-            </TabsContent>
-
-            {/* Danger Zone */}
-            <TabsContent value="danger" className="space-y-6">
-              <Card className="p-6 border-destructive">
-                <h2 className="text-2xl font-semibold mb-6 text-destructive">Danger Zone</h2>
-                
-                <div className="space-y-6">
-                  {/* Delete Account */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Delete Account</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Permanently delete your BitCurrent account. This action cannot be undone.
-                    </p>
-
-                    {!showDeleteConfirm ? (
-                      <Button
-                        variant="destructive"
-                        onClick={() => setShowDeleteConfirm(true)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete My Account
-                      </Button>
-                    ) : (
-                      <Card className="p-4 bg-destructive/10 border-destructive">
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-3">
-                            <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                            <div className="space-y-2 text-sm">
-                              <p className="font-semibold text-destructive">Are you absolutely sure?</p>
-                              <p className="text-muted-foreground">
-                                This will permanently delete your account, including:
-                              </p>
-                              <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                                <li>All your personal information</li>
-                                <li>Trading history and records</li>
-                                <li>Portfolio data</li>
-                                <li>Saved preferences</li>
-                              </ul>
-                              <p className="text-destructive font-semibold mt-4">
-                                Make sure you have withdrawn all your funds first!
-                              </p>
-                            </div>
-                          </div>
-
-                          <div>
-                            <Label>Type DELETE to confirm</Label>
-                            <Input
-                              placeholder="DELETE"
-                              value={deleteConfirmText}
-                              onChange={(e) => setDeleteConfirmText(e.target.value)}
-                              className="font-mono"
-                            />
-                          </div>
-
-                          <div className="flex gap-3">
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setShowDeleteConfirm(false)
-                                setDeleteConfirmText("")
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={handleDeleteAccount}
-                              disabled={deleteConfirmText !== "DELETE"}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Permanently Delete Account
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    )}
-                  </div>
-
-                  {/* Export Data */}
-                  <div className="pt-6 border-t">
-                    <h3 className="font-semibold mb-2">Export Your Data</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Download a copy of your account data and trading history
-                    </p>
-                    <Button variant="outline">
-                      Export Data
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
-      </main>
+          {/* Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+              {activeTab === 'profile' && <ProfileSettings />}
+              {activeTab === 'notifications' && <NotificationSettings />}
+              {activeTab === 'security' && <SecuritySettings />}
+              {activeTab === 'api' && <APIKeySettings />}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  )
+  );
+}
+
+function ProfileSettings() {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        Profile Settings
+      </h2>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Display Name
+          </label>
+          <input
+            type="text"
+            defaultValue="John Doe"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            defaultValue="john@example.com"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Phone Number
+          </label>
+          <input
+            type="tel"
+            defaultValue="+44 7700 900000"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NotificationSettings() {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        Notification Preferences
+      </h2>
+
+      <div className="space-y-4">
+        {[
+          { label: 'Order filled', description: 'Get notified when orders are executed' },
+          { label: 'Price alerts', description: 'Receive price movement alerts' },
+          { label: 'Deposit confirmations', description: 'Get notified when deposits complete' },
+          { label: 'Withdrawal updates', description: 'Track withdrawal status' },
+          { label: 'Security alerts', description: 'Important security notifications' },
+          { label: 'Marketing emails', description: 'News and promotional content' }
+        ].map((item, index) => (
+          <div key={index} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-0">
+            <div>
+              <div className="font-medium text-gray-900 dark:text-white">{item.label}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">{item.description}</div>
+            </div>
+            <input
+              type="checkbox"
+              defaultChecked={index < 5}
+              className="w-5 h-5 text-blue-600 rounded"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SecuritySettings() {
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        Security Settings
+      </h2>
+
+      <div className="space-y-6">
+        <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <span className="font-medium text-green-800 dark:text-green-200">
+              Two-Factor Authentication
+            </span>
+          </div>
+          <p className="text-sm text-green-700 dark:text-green-300 mb-3">
+            2FA is enabled and protecting your account
+          </p>
+          <button className="text-sm text-green-600 dark:text-green-400 hover:underline">
+            Manage 2FA
+          </button>
+        </div>
+
+        <div>
+          <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+            Change Password
+          </h3>
+          <div className="space-y-3">
+            <input
+              type="password"
+              placeholder="Current password"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="password"
+              placeholder="New password"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Update Password
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+            Active Sessions
+          </h3>
+          <div className="space-y-2">
+            {[
+              { device: 'Chrome on Mac', location: 'London, UK', time: 'Active now' },
+              { device: 'Safari on iPhone', location: 'London, UK', time: '2 hours ago' }
+            ].map((session, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">{session.device}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {session.location} • {session.time}
+                  </div>
+                </div>
+                {index > 0 && (
+                  <button className="text-sm text-red-600 hover:underline">
+                    Revoke
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function APIKeySettings() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          API Keys
+        </h2>
+        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Create New Key
+        </button>
+      </div>
+
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+          API keys allow third-party applications to access your account. Keep them secure and never share them.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {[
+          { name: 'Trading Bot', permissions: 'Read, Trade', created: '2025-10-01' },
+          { name: 'Portfolio Tracker', permissions: 'Read', created: '2025-10-10' }
+        ].map((key, index) => (
+          <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium text-gray-900 dark:text-white">{key.name}</div>
+              <button className="text-sm text-red-600 hover:underline">
+                Delete
+              </button>
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Permissions: {key.permissions}
+            </div>
+            <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Created: {key.created}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
