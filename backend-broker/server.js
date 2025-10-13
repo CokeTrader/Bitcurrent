@@ -26,6 +26,7 @@ const paperTradingRoutes = require('./routes/paper-trading');
 const paperOrdersRoutes = require('./routes/paper-orders');
 const stripeWebhooksRoutes = require('./routes/stripe-webhooks');
 const realTradingRoutes = require('./routes/real-trading');
+const advancedOrdersRoutes = require('./routes/advanced-orders');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -33,6 +34,7 @@ const realTradingRoutes = require('./routes/real-trading');
 // Import services
 const { pool } = require('./config/database');
 const alpaca = require('./services/alpaca'); // Using Alpaca for crypto trading
+const advancedOrderService = require('./services/advanced-order-service');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -177,6 +179,7 @@ app.use('/api/v1/migrate', migrateRoutes);
 app.use('/api/v1/paper-trading', paperTradingRoutes);
 app.use('/api/v1/paper-orders', paperOrdersRoutes);
 app.use('/api/v1/real-trading', realTradingRoutes);
+app.use('/api/v1/advanced-orders', advancedOrdersRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
@@ -252,6 +255,10 @@ async function startServer() {
     if (!alpacaConnected) {
       console.warn('⚠️  Alpaca API connection failed - check your API keys');
     }
+    
+    // Start advanced order monitoring
+    advancedOrderService.startMonitoring();
+    console.log('✅ Advanced order monitoring started');
     
     // Start listening
     app.listen(PORT, () => {
