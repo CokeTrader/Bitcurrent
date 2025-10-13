@@ -31,6 +31,7 @@ const multiAssetRoutes = require('./routes/multi-asset');
 const tradingBotsRoutes = require('./routes/trading-bots');
 const analyticsRoutes = require('./routes/analytics');
 const taxReportsRoutes = require('./routes/tax-reports');
+const socialRoutes = require('./routes/social');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -189,6 +190,7 @@ app.use('/api/v1/multi-asset', multiAssetRoutes);
 app.use('/api/v1/bots', tradingBotsRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/tax', taxReportsRoutes);
+app.use('/api/v1/social', socialRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
