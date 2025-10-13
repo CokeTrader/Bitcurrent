@@ -63,3 +63,4 @@ echo "- Test 4: Should place order (if key has 'trade' permission)"
 echo ""
 echo "If you see 401/403 errors, check your API key permissions"
 
+

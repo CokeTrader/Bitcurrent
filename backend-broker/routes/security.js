@@ -267,3 +267,4 @@ router.get('/activity', authMiddleware, async (req, res) => {
 
 module.exports = router;
 
+

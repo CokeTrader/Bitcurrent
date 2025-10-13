@@ -104,3 +104,4 @@ export function PriceAlertModal({ symbol, currentPrice }: PriceAlertModalProps) 
   )
 }
 
+

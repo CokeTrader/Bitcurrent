@@ -192,3 +192,4 @@ All traffic: 0.0.0.0/0 → Required for:
 
 ✅ **Security group fix documented - ready when you need EKS!**
 
+

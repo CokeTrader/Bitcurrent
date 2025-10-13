@@ -224,3 +224,4 @@ CREATE TRIGGER update_kyc_updated_at BEFORE UPDATE ON kyc_verifications
 -- 2. Run migrations if using migration tool
 -- 3. Seed initial data if needed
 
+

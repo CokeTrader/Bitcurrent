@@ -87,3 +87,4 @@ export function RecentTrades({ symbol }: { symbol: string }) {
   )
 }
 
+

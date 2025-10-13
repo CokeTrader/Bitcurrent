@@ -135,3 +135,4 @@ export function QuickTradeWidget({ symbol, currentPrice, change24h }: QuickTrade
   )
 }
 
+

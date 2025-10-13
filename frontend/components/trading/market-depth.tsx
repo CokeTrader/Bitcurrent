@@ -117,3 +117,4 @@ export function MarketDepth({ symbol }: { symbol: string }) {
   )
 }
 
+
