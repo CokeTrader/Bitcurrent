@@ -29,6 +29,7 @@ const realTradingRoutes = require('./routes/real-trading');
 const advancedOrdersRoutes = require('./routes/advanced-orders');
 const multiAssetRoutes = require('./routes/multi-asset');
 const tradingBotsRoutes = require('./routes/trading-bots');
+const analyticsRoutes = require('./routes/analytics');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -185,6 +186,7 @@ app.use('/api/v1/real-trading', realTradingRoutes);
 app.use('/api/v1/advanced-orders', advancedOrdersRoutes);
 app.use('/api/v1/multi-asset', multiAssetRoutes);
 app.use('/api/v1/bots', tradingBotsRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);

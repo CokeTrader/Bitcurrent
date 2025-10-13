@@ -1,212 +1,232 @@
 /**
- * Analytics API Routes
+ * Advanced Analytics API Routes
  */
 
 const express = require('express');
 const router = express.Router();
-const { enhancedAuth } = require('../middleware/advanced-auth');
-const AnalyticsService = require('../services/analytics-service');
-const logger = require('../utils/logger');
+const portfolioAnalyticsService = require('../services/portfolio-analytics-service');
+const { authenticateToken } = require('../middleware/api-auth');
+
+router.use(authenticateToken);
 
 /**
  * GET /api/v1/analytics/portfolio
- * Get portfolio performance
+ * Get comprehensive portfolio analytics
+ * Query params: timeframe (24h, 7d, 30d, 90d, 1y, all)
  */
-router.get('/portfolio',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      const { days = 30 } = req.query;
-      
-      const performance = await AnalyticsService.getPortfolioPerformance(
-        req.userId,
-        parseInt(days)
-      );
-
-      res.json({
-        success: true,
-        performance,
-        period: `${days} days`
-      });
-    } catch (error) {
-      logger.error('Failed to get portfolio performance', {
-        userId: req.userId,
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/portfolio', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { timeframe } = req.query;
+    
+    const result = await portfolioAnalyticsService.getPortfolioAnalytics(
+      userId,
+      timeframe || '30d'
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Get portfolio analytics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve analytics'
+    });
   }
-);
+});
 
 /**
- * GET /api/v1/analytics/stats
- * Get trading statistics
+ * GET /api/v1/analytics/performance
+ * Get performance metrics
  */
-router.get('/stats',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      const stats = await AnalyticsService.getTradingStats(req.userId);
-
-      res.json({
-        success: true,
-        stats
-      });
-    } catch (error) {
-      logger.error('Failed to get trading stats', {
-        userId: req.userId,
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/performance', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { timeframe } = req.query;
+    
+    const result = await portfolioAnalyticsService.getPerformanceMetrics(
+      userId,
+      timeframe || '30d'
+    );
+    
+    res.json({
+      success: true,
+      performance: result
+    });
+  } catch (error) {
+    console.error('Get performance metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve performance metrics'
+    });
   }
-);
+});
 
 /**
- * GET /api/v1/analytics/pnl
- * Get profit/loss calculation
+ * GET /api/v1/analytics/allocation
+ * Get asset allocation breakdown
  */
-router.get('/pnl',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      const pnl = await AnalyticsService.calculateProfitLoss(req.userId);
-
-      res.json({
-        success: true,
-        pnl
-      });
-    } catch (error) {
-      logger.error('Failed to calculate P&L', {
-        userId: req.userId,
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/allocation', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await portfolioAnalyticsService.getAssetAllocation(userId);
+    
+    res.json({
+      success: true,
+      allocation: result
+    });
+  } catch (error) {
+    console.error('Get asset allocation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve asset allocation'
+    });
   }
-);
+});
 
 /**
- * GET /api/v1/analytics/top-pairs
- * Get top trading pairs
+ * GET /api/v1/analytics/top-performers
+ * Get top performing assets
  */
-router.get('/top-pairs',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      const { limit = 5 } = req.query;
-      
-      const pairs = await AnalyticsService.getTopPairs(
-        req.userId,
-        parseInt(limit)
-      );
-
-      res.json({
-        success: true,
-        pairs
-      });
-    } catch (error) {
-      logger.error('Failed to get top pairs', {
-        userId: req.userId,
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/top-performers', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await portfolioAnalyticsService.getTopPerformers(userId);
+    
+    res.json({
+      success: true,
+      topPerformers: result
+    });
+  } catch (error) {
+    console.error('Get top performers error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve top performers'
+    });
   }
-);
+});
 
 /**
- * GET /api/v1/analytics/heatmap
- * Get trading activity heatmap
+ * GET /api/v1/analytics/trade-stats
+ * Get trade statistics
  */
-router.get('/heatmap',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      const { days = 90 } = req.query;
-      
-      const heatmap = await AnalyticsService.getTradingHeatmap(
-        req.userId,
-        parseInt(days)
-      );
-
-      res.json({
-        success: true,
-        heatmap
-      });
-    } catch (error) {
-      logger.error('Failed to get trading heatmap', {
-        userId: req.userId,
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/trade-stats', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await portfolioAnalyticsService.getTradeStatistics(userId);
+    
+    res.json({
+      success: true,
+      stats: result
+    });
+  } catch (error) {
+    console.error('Get trade stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve trade statistics'
+    });
   }
-);
+});
 
 /**
- * POST /api/v1/analytics/track
- * Track custom event
+ * GET /api/v1/analytics/risk
+ * Get risk metrics
  */
-router.post('/track',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      const { eventType, metadata } = req.body;
-
-      if (!eventType) {
-        return res.status(400).json({
-          error: 'Event type required',
-          code: 'EVENT_TYPE_REQUIRED'
-        });
-      }
-
-      await AnalyticsService.trackEvent(req.userId, eventType, metadata);
-
-      res.json({
-        success: true,
-        message: 'Event tracked'
-      });
-    } catch (error) {
-      logger.error('Failed to track event', {
-        userId: req.userId,
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/risk', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await portfolioAnalyticsService.getRiskMetrics(userId);
+    
+    res.json({
+      success: true,
+      risk: result
+    });
+  } catch (error) {
+    console.error('Get risk metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve risk metrics'
+    });
   }
-);
+});
 
 /**
- * GET /api/v1/analytics/platform
- * Get platform-wide statistics (admin only)
+ * GET /api/v1/analytics/historical
+ * Get historical portfolio value
  */
-router.get('/platform',
-  enhancedAuth,
-  async (req, res, next) => {
-    try {
-      // Check admin role
-      if (!req.user.isAdmin) {
-        return res.status(403).json({
-          error: 'Admin access required',
-          code: 'ADMIN_REQUIRED'
-        });
-      }
-
-      const stats = await AnalyticsService.getPlatformStats();
-
-      res.json({
-        success: true,
-        stats
-      });
-    } catch (error) {
-      logger.error('Failed to get platform stats', {
-        error: error.message
-      });
-      next(error);
-    }
+router.get('/historical', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { timeframe } = req.query;
+    
+    const result = await portfolioAnalyticsService.getHistoricalValue(
+      userId,
+      timeframe || '30d'
+    );
+    
+    res.json({
+      success: true,
+      historical: result
+    });
+  } catch (error) {
+    console.error('Get historical value error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve historical data'
+    });
   }
-);
+});
+
+/**
+ * GET /api/v1/analytics/comparison
+ * Compare multiple assets
+ * Query params: assets (comma-separated, e.g., BTC,ETH,SOL)
+ */
+router.get('/comparison', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const assets = req.query.assets ? req.query.assets.split(',') : ['BTC', 'ETH', 'SOL'];
+    
+    const result = await portfolioAnalyticsService.getAssetComparison(userId, assets);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Get asset comparison error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve asset comparison'
+    });
+  }
+});
+
+/**
+ * GET /api/v1/analytics/report
+ * Generate performance report
+ * Query params: format (json, csv)
+ */
+router.get('/report', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { format } = req.query;
+    
+    const result = await portfolioAnalyticsService.generatePerformanceReport(
+      userId,
+      format || 'json'
+    );
+    
+    if (format === 'csv' && result.success) {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+      res.send(result.csv);
+    } else {
+      res.json(result);
+    }
+  } catch (error) {
+    console.error('Generate report error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate report'
+    });
+  }
+});
 
 module.exports = router;
-
