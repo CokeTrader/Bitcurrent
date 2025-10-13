@@ -1,369 +1,367 @@
-# BitCurrent Exchange
+# 🚀 BitCurrent - Modern Crypto Exchange
 
-> **A modern cryptocurrency exchange platform built for the UK market**
+**Trade Bitcoin for 0.25% fees | UK-based crypto broker**
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org)
+BitCurrent is a next-generation cryptocurrency exchange built for the UK market, offering institutional-grade trading at retail fees.
 
-**Live Site**: [https://bitcurrent.co.uk](https://bitcurrent.co.uk)
+---
+
+## ✨ Features
+
+### 💰 Trading
+- **0.25% trading fees** (6x cheaper than Coinbase)
+- Market & limit orders
+- Stop-loss & take-profit
+- Advanced order types
+- Real-time price feeds
+- TradingView charts
+
+### 💳 Deposits & Withdrawals
+- Instant Stripe deposits (card/bank)
+- Fast GBP withdrawals
+- No deposit fees
+- £10 signup bonus
+
+### 🔒 Security
+- Bank-grade encryption
+- 2FA authentication
+- Cold storage (95%+ of funds)
+- UK-based & compliant
+- Insurance protection
+
+### 📊 Advanced Features
+- Portfolio analytics
+- Staking programs (up to 8% APY)
+- Referral program (20% commission)
+- API for trading bots
+- Mobile-responsive
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐
+│   Frontend      │  Next.js 14 + React 18
+│   (Vercel)      │  TypeScript + Tailwind
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Backend       │  Node.js + Express
+│   (Railway)     │  PostgreSQL
+└────────┬────────┘
+         │
+         ├──────────► Alpaca API (Trading)
+         ├──────────► Stripe (Payments)
+         └──────────► Email Service
+```
+
+### Tech Stack
+
+**Frontend:**
+- Next.js 14 (App Router)
+- React 18 + TypeScript
+- Tailwind CSS + Framer Motion
+- TradingView widgets
+- Recharts for analytics
+
+**Backend:**
+- Node.js 18 + Express
+- PostgreSQL (primary database)
+- JWT authentication
+- WebSocket (real-time prices)
+- Winston (logging)
+
+**Infrastructure:**
+- Vercel (frontend hosting)
+- Railway (backend + database)
+- GitHub Actions (CI/CD)
+- Dependabot (security)
+
+**Integrations:**
+- Alpaca API (crypto trading)
+- Stripe (payments)
+- Transactional email service
 
 ---
 
 ## 🚀 Quick Start
 
-**Want to launch your own exchange in 2 weeks?**
-
-👉 **Start here**: [START_HERE.md](👉_START_HERE.md)
-
----
-
-## 📊 Overview
-
-BitCurrent is a **broker model** cryptocurrency exchange that uses external liquidity providers (Binance) to offer trading without the complexity of a matching engine.
-
-### Key Features
-
-- ✅ **Trading**: Market orders for BTC, ETH, and more pairs
-- ✅ **Multi-Currency**: GBP, BTC, ETH balance tracking
-- ✅ **Admin Panel**: Manual approval for deposits/withdrawals
-- ✅ **SEO Optimized**: Blog, FAQ, and content pages
-- ✅ **Mobile Ready**: Responsive PWA design
-- ✅ **Secure**: JWT auth, bcrypt, rate limiting
-
-### Architecture
-
-**Backend**: Node.js monolith with Binance API integration
-**Frontend**: Next.js 14 with React 18
-**Database**: PostgreSQL
-**Hosting**: Railway (£15/month) + Vercel (free)
-
----
-
-## 💰 Cost Breakdown
-
-| Item | Cost | Details |
-|------|------|---------|
-| **Backend + Database** | £15/month | Railway.app |
-| **Frontend** | £0/month | Vercel (free tier) |
-| **Liquidity** | £0 upfront | Binance revenue-share |
-| **Total** | **£15/month** | 90% cheaper than matching engine |
-
----
-
-## 📁 Project Structure
-
-```
-Bitcurrent1/
-├── backend-broker/              # Node.js broker model backend
-│   ├── config/                  # Database configuration
-│   ├── routes/                  # API endpoints
-│   ├── services/                # Binance, Ledger services
-│   ├── middleware/              # Auth, rate limiting
-│   ├── database/                # PostgreSQL schema
-│   └── server.js                # Main entry point
-│
-├── frontend/                    # Next.js frontend
-│   ├── app/                     # Pages (App Router)
-│   ├── components/              # React components
-│   ├── lib/                     # Utils, API client
-│   └── public/                  # Static assets
-│
-├── services/                    # [OLD] Go microservices (not used)
-├── infrastructure/              # [OLD] K8s configs (not used)
-│
-└── docs/                        # Documentation
-    ├── 👉_START_HERE.md         # Your action plan
-    ├── 🎯_QUICK_START_GUIDE.md  # 2-hour launch guide
-    ├── 🚀_RAILWAY_DEPLOYMENT_GUIDE.md
-    ├── ✅_LAUNCH_CHECKLIST.md
-    └── 📋_REALISTIC_BROKER_MODEL_PLAN.md
-```
-
----
-
-## 🎯 Getting Started
-
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL 15+
-- Railway.app account (for deployment)
-- Binance account (for liquidity)
+- PostgreSQL 14+
+- npm or yarn
 
-### Local Development
+### 1. Clone Repository
 
 ```bash
-# Backend
-cd backend-broker
-npm install
-cp .env.example .env
-# Edit .env with your settings
-npm run dev
+git clone https://github.com/CokeTrader/Bitcurrent.git
+cd bitcurrent1
+```
 
-# Frontend
-cd frontend
+### 2. Setup Backend
+
+```bash
+cd backend-broker
+
+# Install dependencies
 npm install
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your credentials
+# Required variables:
+# - DATABASE_URL
+# - JWT_SECRET
+# - ALPACA_KEY_ID
+# - ALPACA_SECRET_KEY
+# - STRIPE_SECRET_KEY
+
+# Run database migrations
+node scripts/migration-manager.js up
+
+# Start backend
 npm run dev
+```
+
+Backend runs on `http://localhost:4000`
+
+### 3. Setup Frontend
+
+```bash
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Copy environment template
+cp .env.local.example .env.local
+
+# Edit .env.local
+# Required:
+# - NEXT_PUBLIC_API_URL=http://localhost:4000
+# - NEXT_PUBLIC_STRIPE_KEY=pk_test_...
+
+# Start frontend
+npm run dev
+```
+
+Frontend runs on `http://localhost:3000`
+
+### 4. Access Application
+
+- **Homepage:** http://localhost:3000
+- **Dashboard:** http://localhost:3000/dashboard
+- **Trading:** http://localhost:3000/trade/BTCUSD
+- **API Docs:** http://localhost:3000/api-docs
+
+---
+
+## 📦 Project Structure
+
+```
+bitcurrent1/
+├── frontend/              # Next.js application
+│   ├── app/              # App router pages
+│   ├── components/       # React components
+│   ├── lib/              # Utilities
+│   ├── hooks/            # Custom React hooks
+│   └── tests/            # E2E tests (Playwright)
+│
+├── backend-broker/       # Express API server
+│   ├── routes/           # API endpoints
+│   ├── services/         # Business logic
+│   ├── middleware/       # Express middleware
+│   ├── database/         # DB queries
+│   ├── migrations/       # SQL migrations
+│   ├── utils/            # Helpers
+│   ├── scripts/          # Utility scripts
+│   └── templates/        # Email templates
+│
+├── docs/                 # Documentation
+│   ├── API.md           # API documentation
+│   ├── DEPLOYMENT.md    # Deployment guide
+│   └── ARCHITECTURE.md  # Architecture docs
+│
+└── .github/             # GitHub Actions
+    └── workflows/       # CI/CD pipelines
+```
+
+---
+
+## 🧪 Testing
+
+### Backend Unit Tests
+
+```bash
+cd backend-broker
+npm test
+```
+
+### Frontend E2E Tests
+
+```bash
+cd frontend
+npx playwright test
+```
+
+### API Testing
+
+```bash
+# Test Stripe integration
+node backend-broker/scripts/test-stripe.js
+
+# Test Alpaca integration
+node backend-broker/scripts/test-alpaca.js
 ```
 
 ---
 
 ## 🚢 Deployment
 
-### Option 1: Quick Deploy (Railway + Vercel)
+### Frontend (Vercel)
 
-1. **Deploy Backend** (30 mins)
-   ```bash
-   # Sign up: https://railway.app
-   # Connect GitHub repo
-   # Deploy backend-broker folder
-   # Add PostgreSQL database
-   # Configure environment variables
-   ```
+1. Connect GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push to `main`
 
-2. **Deploy Frontend** (15 mins)
-   ```bash
-   # Sign up: https://vercel.com
-   # Connect GitHub repo
-   # Deploy frontend folder
-   # Add environment variable: NEXT_PUBLIC_API_URL
-   ```
+**Environment Variables:**
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_STRIPE_KEY`
+- `NEXT_PUBLIC_GA_ID`
 
-3. **Follow the guides**:
-   - [Quick Start Guide](🎯_QUICK_START_GUIDE.md) - Fastest path
-   - [Railway Deployment](🚀_RAILWAY_DEPLOYMENT_GUIDE.md) - Detailed steps
+### Backend (Railway)
 
-### Option 2: Manual Docker Deploy
+1. Create new project in Railway
+2. Connect GitHub repository
+3. Add PostgreSQL database
+4. Set environment variables
+5. Deploy automatically on push to `main`
+
+**Environment Variables:**
+- `DATABASE_URL` (auto-provided by Railway)
+- `JWT_SECRET`
+- `ALPACA_KEY_ID`
+- `ALPACA_SECRET_KEY`
+- `STRIPE_SECRET_KEY`
+- `NODE_ENV=production`
+
+### Database Migrations
 
 ```bash
-# Build backend
-cd backend-broker
-docker build -t bitcurrent-backend .
-docker run -p 8080:8080 bitcurrent-backend
+# SSH into Railway
+railway run bash
 
-# Build frontend
-cd frontend
-docker build -t bitcurrent-frontend .
-docker run -p 3000:3000 bitcurrent-frontend
+# Run migrations
+node scripts/migration-manager.js up
 ```
 
 ---
 
-## 📚 Documentation
+## 🔐 Security
 
-### Essential Guides
+- **Automated scanning:** TruffleHog (secrets), Snyk (vulnerabilities)
+- **Dependency updates:** Dependabot (weekly)
+- **Authentication:** JWT + 2FA
+- **Data encryption:** AES-256 at rest, TLS 1.3 in transit
+- **Rate limiting:** Per-endpoint limits
+- **CSRF protection:** Token-based
+- **Input sanitization:** DOMPurify + validators
+- **SQL injection prevention:** Parameterized queries only
 
-| Document | Description | Time |
-|----------|-------------|------|
-| [👉 START HERE](👉_START_HERE.md) | Your action plan | 5 mins |
-| [🎯 Quick Start](🎯_QUICK_START_GUIDE.md) | Launch in 2 weeks | 2 hours |
-| [🚀 Railway Deploy](🚀_RAILWAY_DEPLOYMENT_GUIDE.md) | Step-by-step deployment | 4 hours |
-| [✅ Launch Checklist](✅_LAUNCH_CHECKLIST.md) | Complete task list | Reference |
-| [📋 Business Plan](📋_REALISTIC_BROKER_MODEL_PLAN.md) | Full strategy | 30 mins |
-
-### Technical Docs
-
-- [Backend README](backend-broker/README.md) - API documentation
-- [Infrastructure Audit](🔍_INFRASTRUCTURE_AUDIT.md) - Cost analysis
-- [Broker Model Architecture](docs/BROKER_MODEL_ARCHITECTURE.md) - System design
+See [SECURITY_AUDIT.md](SECURITY_AUDIT.md) for full report.
 
 ---
 
-## 🔧 API Endpoints
+## 📖 API Documentation
 
-### Authentication
-- `POST /api/v1/auth/register` - Register user
-- `POST /api/v1/auth/login` - Login
-- `GET /api/v1/auth/me` - Get current user
+Full API documentation: [docs/API.md](docs/API.md)
 
-### Trading
-- `GET /api/v1/orders/quote` - Get price quote
-- `POST /api/v1/orders` - Place market order
-- `GET /api/v1/orders` - Order history
-
-### Balances
-- `GET /api/v1/balances` - Get all balances
-- `GET /api/v1/balances/:currency` - Get specific balance
-
-### Deposits/Withdrawals
-- `POST /api/v1/deposits` - Create deposit request
-- `POST /api/v1/withdrawals` - Create withdrawal request
-- `GET /api/v1/deposits` - Deposit history
-- `GET /api/v1/withdrawals` - Withdrawal history
-
-### Admin (requires admin auth)
-- `GET /api/v1/admin/deposits/pending` - Pending deposits
-- `POST /api/v1/admin/deposits/:id/approve` - Approve deposit
-- `GET /api/v1/admin/withdrawals/pending` - Pending withdrawals
-- `POST /api/v1/admin/withdrawals/:id/approve` - Approve withdrawal
-
----
-
-## 🎨 Tech Stack
-
-### Backend
-- **Runtime**: Node.js 18
-- **Framework**: Express.js
-- **Database**: PostgreSQL 15
-- **Auth**: JWT + bcrypt
-- **API**: Binance REST API
-
-### Frontend
-- **Framework**: Next.js 14
-- **UI**: React 18 + TailwindCSS
-- **State**: Zustand
-- **Web3**: wagmi + RainbowKit
-- **Forms**: React Hook Form + Zod
-
-### Infrastructure
-- **Backend Hosting**: Railway.app
-- **Frontend Hosting**: Vercel
-- **Database**: Railway PostgreSQL
-- **SSL**: Automatic (Railway + Vercel)
-
----
-
-## 📈 Roadmap
-
-### ✅ Phase 1: MVP (Complete)
-- [x] User authentication
-- [x] Market orders via Binance
-- [x] Manual deposit/withdrawal approval
-- [x] Admin panel
-- [x] SEO optimization
-
-### 🚧 Phase 2: Automation (Month 2-3)
-- [ ] Automated KYC (Sumsub integration)
-- [ ] Card deposits (Transak integration)
-- [ ] Automated withdrawals
-- [ ] Email notifications
-
-### 📋 Phase 3: Features (Month 3-6)
-- [ ] Limit orders
-- [ ] More trading pairs (10+ pairs)
-- [ ] Price alerts
-- [ ] Advanced charts
-- [ ] Mobile app
-
-### 🎯 Phase 4: Scale (Month 6-12)
-- [ ] FCA license approval
-- [ ] Institutional features
-- [ ] API for third-party developers
-- [ ] Staking (live implementation)
-
----
-
-## 💡 Why Broker Model?
-
-Traditional exchanges need:
-- ❌ Matching engine (complex)
-- ❌ Deep liquidity (£100k+)
-- ❌ Market makers (expensive)
-- ❌ Complex infrastructure (£200+/month)
-
-Broker model needs:
-- ✅ Simple API integration (Binance)
-- ✅ Zero upfront liquidity
-- ✅ Revenue-share model
-- ✅ Cheap infrastructure (£15/month)
-
-**Result**: Launch with £1,000 instead of £100,000
-
----
-
-## 📊 Revenue Model
-
-- **Trading Fee**: 0.1% per trade
-- **Example**: £100,000 volume = £100 revenue
-- **Break-even**: ~£50,000/month volume (Month 3-4)
-- **Target**: £1,000,000/month volume = £1,000 revenue
-
-### Realistic Projections
-
-| Month | Users | Volume | Revenue | Costs | Profit |
-|-------|-------|--------|---------|-------|--------|
-| 1 | 50 | £50k | £50 | £16 | +£34 |
-| 3 | 200 | £200k | £200 | £16 | +£184 |
-| 6 | 1,000 | £1M | £1,000 | £16 | +£984 |
-| 12 | 5,000 | £5M | £5,000 | £16 | +£4,984 |
-
----
-
-## 🔒 Security
-
-- ✅ JWT authentication with refresh tokens
-- ✅ bcrypt password hashing (10 rounds)
-- ✅ Rate limiting (100 req/15min)
-- ✅ CORS protection
-- ✅ Helmet security headers
-- ✅ SQL injection prevention (parameterized queries)
-- ✅ XSS protection
-- ✅ HTTPS enforced
-- ✅ Immutable transaction ledger
-
----
-
-## 🧪 Testing
+**Quick Examples:**
 
 ```bash
-# Backend tests
-cd backend-broker
-npm test
+# Get market data
+curl https://api.bitcurrent.com/v1/markets
 
-# Frontend tests
-cd frontend
-npm test
+# Get account balance
+curl -H "Authorization: Bearer <token>" \
+  https://api.bitcurrent.com/v1/account/balance
 
-# E2E tests
-cd frontend
-npm run test:e2e
+# Place order
+curl -X POST \
+  -H "Authorization: Bearer <token>" \
+  -d '{"pair":"BTC/USD","side":"buy","amount":0.001}' \
+  https://api.bitcurrent.com/v1/orders
 ```
 
 ---
 
 ## 🤝 Contributing
 
-This is a personal/commercial project. If you want to build your own exchange using this code:
+We welcome contributions! Please:
 
-1. **Fork the repository**
-2. **Follow the guides** in the docs/ folder
-3. **Deploy your own instance**
-4. **Don't steal the BitCurrent branding** 😊
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**Note**: While the code is MIT licensed, the "BitCurrent" brand and logo are not included.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-## 🙏 Acknowledgments
+## 📜 License
 
-- **Binance** for providing liquidity via broker program
-- **Railway.app** for affordable hosting
-- **Vercel** for free frontend hosting
-- **Next.js** team for an amazing framework
+Proprietary - All rights reserved
 
 ---
 
-## 📞 Contact
+## 🆘 Support
 
-- **Website**: [bitcurrent.co.uk](https://bitcurrent.co.uk)
-- **Email**: support@bitcurrent.co.uk
-- **GitHub**: [github.com/CokeTrader/Bitcurrent](https://github.com/CokeTrader/Bitcurrent)
-
----
-
-## ⭐ Star This Repo
-
-If you found this helpful, please star the repo! It helps others discover this project.
+- **Email:** support@bitcurrent.com
+- **Discord:** https://discord.gg/bitcurrent
+- **Docs:** https://docs.bitcurrent.com
+- **Status:** https://status.bitcurrent.com
 
 ---
 
-**Built with ❤️ in London, UK**
+## 📊 Project Status
 
-*Launch your crypto exchange in 2 weeks with £1,000 budget* 🚀
+![Build Status](https://github.com/CokeTrader/Bitcurrent/workflows/CI/badge.svg)
+![Security Score](https://img.shields.io/badge/security-82%2F100-green)
+![Test Coverage](https://img.shields.io/badge/coverage-75%25-yellow)
+
+**Current Version:** 1.0.0-beta  
+**Status:** Pre-launch (testing phase)  
+**Target Launch:** Q4 2025
+
+---
+
+## 🎯 Roadmap
+
+### Q4 2025
+- [x] Core trading features
+- [x] Stripe deposits
+- [x] Portfolio analytics
+- [ ] iOS/Android apps
+- [ ] Institutional accounts
+
+### Q1 2026
+- [ ] Margin trading
+- [ ] Futures contracts
+- [ ] Advanced charting
+- [ ] Copy trading
+
+### Q2 2026
+- [ ] NFT marketplace
+- [ ] DeFi integration
+- [ ] Lending/borrowing
+
+---
+
+**Built with ❤️ in the UK**
+
+*Trade smarter, not harder.* 🚀
