@@ -36,6 +36,7 @@ const referralsRoutes = require('./routes/referrals');
 const paymentMethodsRoutes = require('./routes/payment-methods');
 const alertsRoutes = require('./routes/alerts');
 const marketNewsRoutes = require('./routes/market-news');
+const stakingRoutes = require('./routes/staking');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -200,6 +201,7 @@ app.use('/api/v1/referrals', referralsRoutes);
 app.use('/api/v1/payment-methods', paymentMethodsRoutes);
 app.use('/api/v1/alerts', alertsRoutes);
 app.use('/api/v1/news', marketNewsRoutes);
+app.use('/api/v1/staking', stakingRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
