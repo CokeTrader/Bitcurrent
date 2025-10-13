@@ -1,311 +1,255 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { AssetIcon } from "@/components/ui/asset-icon"
-import { PriceChange } from "@/components/ui/price-change"
-import { useMarketData, useTrendingCoins } from "@/hooks/use-market-data"
-import { Search, Star, TrendingUp, Filter, ArrowUpDown } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { TrendingUp, TrendingDown, Search } from 'lucide-react';
 
-type SortKey = "name" | "price" | "change24h" | "volume24h" | "marketCap"
+interface Market {
+  pair: string;
+  name: string;
+  lastPrice: number;
+  change24h: number;
+  volume24h: number;
+  high24h: number;
+  low24h: number;
+}
 
 export default function MarketsPage() {
-  const { data: markets, isLoading } = useMarketData('gbp')
-  const { data: trending } = useTrendingCoins()
-  
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [sortKey, setSortKey] = React.useState<SortKey>("marketCap")
-  const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("desc")
-  const [favorites, setFavorites] = React.useState<Set<string>>(new Set())
-
-  // Filter markets based on search
-  const filteredMarkets = React.useMemo(() => {
-    if (!markets) return []
-    
-    return markets.filter(market => {
-      const searchLower = searchQuery.toLowerCase()
-      return (
-        market.baseAsset.toLowerCase().includes(searchLower) ||
-        market.name.toLowerCase().includes(searchLower)
-      )
-    })
-  }, [markets, searchQuery])
-
-  // Sort markets
-  const sortedMarkets = React.useMemo(() => {
-    return [...filteredMarkets].sort((a, b) => {
-      let aVal: number, bVal: number
-      
-      switch (sortKey) {
-        case "name":
-          return sortDirection === "asc" 
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name)
-        case "price":
-          aVal = a.price
-          bVal = b.price
-          break
-        case "change24h":
-          aVal = a.change24h
-          bVal = b.change24h
-          break
-        case "volume24h":
-          aVal = a.volume24h
-          bVal = b.volume24h
-          break
-        case "marketCap":
-          aVal = a.marketCap
-          bVal = b.marketCap
-          break
-        default:
-          return 0
-      }
-      
-      return sortDirection === "asc" ? aVal - bVal : bVal - aVal
-    })
-  }, [filteredMarkets, sortKey, sortDirection])
-
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortKey(key)
-      setSortDirection("desc")
+  const [markets, setMarkets] = useState<Market[]>([
+    {
+      pair: 'BTC/USD',
+      name: 'Bitcoin',
+      lastPrice: 67234.50,
+      change24h: 2.5,
+      volume24h: 12345678,
+      high24h: 68000,
+      low24h: 66000
+    },
+    {
+      pair: 'ETH/USD',
+      name: 'Ethereum',
+      lastPrice: 3567.89,
+      change24h: -1.2,
+      volume24h: 8765432,
+      high24h: 3650,
+      low24h: 3500
+    },
+    {
+      pair: 'SOL/USD',
+      name: 'Solana',
+      lastPrice: 145.67,
+      change24h: 5.8,
+      volume24h: 2345678,
+      high24h: 150,
+      low24h: 138
     }
-  }
+  ]);
 
-  const toggleFavorite = (symbol: string) => {
-    const newFavorites = new Set(favorites)
-    if (newFavorites.has(symbol)) {
-      newFavorites.delete(symbol)
-    } else {
-      newFavorites.add(symbol)
-    }
-    setFavorites(newFavorites)
-  }
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
+
+  const filteredMarkets = markets
+    .filter(m => {
+      const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase()) || 
+                           m.pair.toLowerCase().includes(search.toLowerCase());
+      
+      if (filter === 'gainers') return matchesSearch && m.change24h > 0;
+      if (filter === 'losers') return matchesSearch && m.change24h < 0;
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (filter === 'gainers') return b.change24h - a.change24h;
+      if (filter === 'losers') return a.change24h - b.change24h;
+      return b.volume24h - a.volume24h;
+    });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2">Markets</h1>
-          <p className="text-muted-foreground">
-            Live cryptocurrency prices and trading pairs
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            Markets
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Real-time cryptocurrency prices and market data
           </p>
         </div>
 
-        {/* Trending Section */}
-        {!isLoading && markets && (
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-warning" />
-              <h3 className="font-semibold">Trending Now</h3>
-            </div>
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-              {markets.slice(0, 6).map((market) => (
-                <Link
-                  key={market.symbol}
-                  href={`/trade/${market.symbol}`}
-                  className="flex-shrink-0"
-                >
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer min-w-[200px]">
-                    <AssetIcon symbol={market.baseAsset} size="md" />
-                    <div>
-                      <div className="font-semibold text-sm">{market.baseAsset}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="font-mono text-sm">
-                          £{market.price.toLocaleString('en-GB')}
-                        </span>
-                        <PriceChange value={market.change24h} size="sm" showArrow={false} />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {/* Search and Filters */}
-        <Card className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search cryptocurrency by name or symbol..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">
-                <Star className="h-4 w-4" />
-                Favorites
-              </Button>
-              <Button variant="outline">
-                <Filter className="h-4 w-4" />
-                Filters
-              </Button>
-            </div>
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search markets..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
           </div>
-        </Card>
+
+          {/* Filter buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filter === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter('gainers')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filter === 'gainers'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Gainers
+            </button>
+            <button
+              onClick={() => setFilter('losers')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                filter === 'losers'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Losers
+            </button>
+          </div>
+        </div>
 
         {/* Markets Table */}
-        <Card className="p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
-                <tr className="border-b border-border text-sm text-muted-foreground">
-                  <th className="text-left font-medium pb-4 w-8"></th>
-                  <th className="text-left font-medium pb-4">
-                    <button
-                      onClick={() => handleSort("name")}
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                    >
-                      Name
-                      <ArrowUpDown className="h-3 w-3" />
-                    </button>
+              <thead className="bg-gray-50 dark:bg-gray-900">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Name
                   </th>
-                  <th className="text-right font-medium pb-4">
-                    <button
-                      onClick={() => handleSort("price")}
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                    >
-                      Price
-                      <ArrowUpDown className="h-3 w-3" />
-                    </button>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Price
                   </th>
-                  <th className="text-right font-medium pb-4">
-                    <button
-                      onClick={() => handleSort("change24h")}
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                    >
-                      24h Change
-                      <ArrowUpDown className="h-3 w-3" />
-                    </button>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    24h Change
                   </th>
-                  <th className="text-right font-medium pb-4">
-                    <button
-                      onClick={() => handleSort("volume24h")}
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                    >
-                      24h Volume
-                      <ArrowUpDown className="h-3 w-3" />
-                    </button>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    24h Volume
                   </th>
-                  <th className="text-right font-medium pb-4">
-                    <button
-                      onClick={() => handleSort("marketCap")}
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                    >
-                      Market Cap
-                      <ArrowUpDown className="h-3 w-3" />
-                    </button>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    24h High
                   </th>
-                  <th className="text-right font-medium pb-4">Actions</th>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    24h Low
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Action
+                  </th>
                 </tr>
               </thead>
-              <tbody>
-                {isLoading ? (
-                  // Loading state
-                  Array.from({ length: 10 }).map((_, i) => (
-                    <tr key={i} className="border-b border-border">
-                      <td className="py-4" colSpan={7}>
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 skeleton rounded-full" />
-                          <div className="flex-1 space-y-2">
-                            <div className="h-4 w-32 skeleton rounded" />
-                            <div className="h-3 w-24 skeleton rounded" />
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  sortedMarkets.map((market) => (
-                    <tr
-                      key={market.symbol}
-                      className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors group"
-                    >
-                      <td className="py-4">
-                        <button
-                          onClick={() => toggleFavorite(market.symbol)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Star
-                            className={`h-4 w-4 ${
-                              favorites.has(market.symbol)
-                                ? "fill-warning text-warning"
-                                : "text-muted-foreground"
-                            }`}
-                          />
-                        </button>
-                      </td>
-                      <td className="py-4">
-                        <div className="flex items-center gap-3">
-                          <AssetIcon symbol={market.baseAsset} size="md" />
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredMarkets.map((market) => {
+                  const isPositive = market.change24h >= 0;
+
+                  return (
+                    <tr key={market.pair} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
                           <div>
-                            <div className="font-semibold">{market.baseAsset}</div>
-                            <div className="text-xs text-muted-foreground">{market.name}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {market.name}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {market.pair}
+                            </div>
                           </div>
                         </div>
                       </td>
-                      <td className="text-right font-mono font-semibold">
-                        £{market.price.toLocaleString('en-GB', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: market.price > 100 ? 2 : 8
-                        })}
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          £{market.lastPrice.toLocaleString()}
+                        </div>
                       </td>
-                      <td className="text-right">
-                        <PriceChange value={market.change24h} type="percentage" />
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className={`flex items-center justify-end text-sm font-medium ${
+                          isPositive ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {isPositive ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                          {isPositive ? '+' : ''}{market.change24h.toFixed(2)}%
+                        </div>
                       </td>
-                      <td className="text-right font-mono text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
                         £{(market.volume24h / 1000000).toFixed(2)}M
                       </td>
-                      <td className="text-right font-mono text-sm">
-                        £{(market.marketCap / 1000000000).toFixed(2)}B
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                        £{market.high24h.toLocaleString()}
                       </td>
-                      <td className="text-right">
-                        <Link href={`/trade/${market.symbol}`}>
-                          <Button variant="outline" size="sm">
-                            Trade
-                          </Button>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                        £{market.low24h.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <Link
+                          href={`/trade/${market.pair.replace('/', '')}`}
+                          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                        >
+                          Trade
                         </Link>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
-          {!isLoading && sortedMarkets.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No markets found matching "{searchQuery}"</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchQuery("")}
-                className="mt-4"
-              >
-                Clear Search
-              </Button>
+          {filteredMarkets.length === 0 && (
+            <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+              No markets found
             </div>
           )}
+        </div>
 
-          {!isLoading && sortedMarkets.length > 0 && (
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              Showing {sortedMarkets.length} markets • Updated every 30 seconds
+        {/* Market Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              Total Markets
             </div>
-          )}
-        </Card>
+            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              {markets.length}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              24h Trading Volume
+            </div>
+            <div className="text-3xl font-bold text-gray-900 dark:text-white">
+              £{(markets.reduce((sum, m) => sum + m.volume24h, 0) / 1000000).toFixed(2)}M
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              Average 24h Change
+            </div>
+            <div className={`text-3xl font-bold ${
+              markets.reduce((sum, m) => sum + m.change24h, 0) / markets.length >= 0
+                ? 'text-green-600'
+                : 'text-red-600'
+            }`}>
+              {((markets.reduce((sum, m) => sum + m.change24h, 0) / markets.length)).toFixed(2)}%
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
-
