@@ -28,6 +28,7 @@ const stripeWebhooksRoutes = require('./routes/stripe-webhooks');
 const realTradingRoutes = require('./routes/real-trading');
 const advancedOrdersRoutes = require('./routes/advanced-orders');
 const multiAssetRoutes = require('./routes/multi-asset');
+const tradingBotsRoutes = require('./routes/trading-bots');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -36,6 +37,7 @@ const multiAssetRoutes = require('./routes/multi-asset');
 const { pool } = require('./config/database');
 const alpaca = require('./services/alpaca'); // Using Alpaca for crypto trading
 const advancedOrderService = require('./services/advanced-order-service');
+const tradingBotService = require('./services/trading-bot-service');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -182,6 +184,7 @@ app.use('/api/v1/paper-orders', paperOrdersRoutes);
 app.use('/api/v1/real-trading', realTradingRoutes);
 app.use('/api/v1/advanced-orders', advancedOrdersRoutes);
 app.use('/api/v1/multi-asset', multiAssetRoutes);
+app.use('/api/v1/bots', tradingBotsRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
@@ -261,6 +264,10 @@ async function startServer() {
     // Start advanced order monitoring
     advancedOrderService.startMonitoring();
     console.log('✅ Advanced order monitoring started');
+    
+    // Start trading bot monitoring
+    tradingBotService.startMonitoring();
+    console.log('✅ Trading bot monitoring started');
     
     // Start listening
     app.listen(PORT, () => {
