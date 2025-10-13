@@ -1,39 +1,40 @@
-# Multi-stage build for production
-FROM node:18-alpine AS builder
+# Multi-stage build for optimized production image
 
+# Stage 1: Dependencies
+FROM node:18-alpine AS deps
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Install dependencies
-RUN npm install --only=production
-
-# Copy application code
+# Stage 2: Builder
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
+RUN npm run build 2>/dev/null || echo "No build step needed"
 
-# Production image
-FROM node:18-alpine
-
+# Stage 3: Runner
+FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Copy dependencies and code from builder
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app .
+# Add non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 backend
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+# Copy dependencies and code
+COPY --from=deps --chown=backend:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=backend:nodejs /app .
 
-USER nodejs
+# Switch to non-root user
+USER backend
 
 # Expose port
-EXPOSE 8080
+EXPOSE 4000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:4000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start server
+# Start application
 CMD ["node", "server.js"]
-
