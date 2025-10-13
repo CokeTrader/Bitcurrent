@@ -230,7 +230,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push matching engine
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./matching-engine
           push: true
@@ -238,7 +238,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push api-gateway
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./services/api-gateway
           push: true
@@ -246,7 +246,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push frontend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: true
