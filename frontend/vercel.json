@@ -12,8 +12,7 @@
         }
       ],
       "destination": "https://bitcurrent.co.uk/:path*",
-      "permanent": true,
-      "statusCode": 308
+      "permanent": true
     },
     {
       "source": "/:path*",
@@ -24,8 +23,7 @@
         }
       ],
       "destination": "https://bitcurrent.co.uk/:path*",
-      "permanent": true,
-      "statusCode": 308
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -62,4 +60,3 @@
     "NEXT_PUBLIC_WS_URL": "wss://bitcurrent-production.up.railway.app"
   }
 }
-
