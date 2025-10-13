@@ -34,6 +34,7 @@ const taxReportsRoutes = require('./routes/tax-reports');
 const socialRoutes = require('./routes/social');
 const referralsRoutes = require('./routes/referrals');
 const paymentMethodsRoutes = require('./routes/payment-methods');
+const alertsRoutes = require('./routes/alerts');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -43,6 +44,7 @@ const { pool } = require('./config/database');
 const alpaca = require('./services/alpaca'); // Using Alpaca for crypto trading
 const advancedOrderService = require('./services/advanced-order-service');
 const tradingBotService = require('./services/trading-bot-service');
+const priceAlertService = require('./services/price-alert-service');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -195,6 +197,7 @@ app.use('/api/v1/tax', taxReportsRoutes);
 app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/referrals', referralsRoutes);
 app.use('/api/v1/payment-methods', paymentMethodsRoutes);
+app.use('/api/v1/alerts', alertsRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
@@ -278,6 +281,10 @@ async function startServer() {
     // Start trading bot monitoring
     tradingBotService.startMonitoring();
     console.log('✅ Trading bot monitoring started');
+    
+    // Start price alert monitoring
+    priceAlertService.startMonitoring();
+    console.log('✅ Price alert monitoring started');
     
     // Start listening
     app.listen(PORT, () => {
