@@ -33,6 +33,7 @@ const analyticsRoutes = require('./routes/analytics');
 const taxReportsRoutes = require('./routes/tax-reports');
 const socialRoutes = require('./routes/social');
 const referralsRoutes = require('./routes/referrals');
+const paymentMethodsRoutes = require('./routes/payment-methods');
 // Temporarily disable 2FA and paper-funds to fix crash
 // const twoFARoutes = require('./routes/2fa');
 // const paperFundsRoutes = require('./routes/paper-funds');
@@ -193,6 +194,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/tax', taxReportsRoutes);
 app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/referrals', referralsRoutes);
+app.use('/api/v1/payment-methods', paymentMethodsRoutes);
 // Temporarily disabled to fix crash
 // app.use('/api/v1/2fa', twoFARoutes);
 // app.use('/api/v1/paper', paperFundsRoutes);
